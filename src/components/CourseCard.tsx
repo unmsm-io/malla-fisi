@@ -9,10 +9,18 @@ import { CATEGORY_STYLES, cn } from "@/lib/utils";
 interface Props {
   course: Course;
   placed?: boolean;
+  highlighted?: boolean;
   onEditPrereqs?: (code: string) => void;
+  onHover?: (code: string | null) => void;
 }
 
-export function CourseCard({ course, placed, onEditPrereqs }: Props) {
+export function CourseCard({
+  course,
+  placed,
+  highlighted,
+  onEditPrereqs,
+  onHover,
+}: Props) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: course.code,
     data: { course },
@@ -26,35 +34,37 @@ export function CourseCard({ course, placed, onEditPrereqs }: Props) {
   return (
     <div
       ref={setNodeRef}
+      data-course-code={course.code}
+      onMouseEnter={() => onHover?.(course.code)}
+      onMouseLeave={() => onHover?.(null)}
       {...listeners}
       {...attributes}
       style={transformStyle}
       className={cn(
-        "group relative cursor-grab select-none rounded-lg border px-2.5 py-2 text-xs shadow-sm transition active:cursor-grabbing",
+        "group relative cursor-grab select-none rounded-md border px-2 py-1.5 text-[11px] leading-tight shadow-sm transition active:cursor-grabbing",
         "hover:-translate-y-px hover:shadow-md",
         style.bg,
         style.border,
         style.text,
         isDragging && "opacity-30",
+        highlighted && "ring-2 ring-violet-500 ring-offset-1 ring-offset-background",
       )}
     >
-      <div className="flex items-start gap-1.5">
+      <div className="flex items-start gap-1">
         <GripVertical
-          size={11}
+          size={10}
           className="mt-0.5 shrink-0 opacity-30 transition group-hover:opacity-60"
         />
         <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-semibold leading-snug tracking-tight">
-            {course.name}
-          </div>
-          <div className="mt-1 flex items-center gap-1.5 text-[10px] opacity-70">
+          <div className="font-semibold tracking-tight">{course.name}</div>
+          <div className="mt-0.5 flex items-center gap-1 text-[9px] opacity-70">
             <span className="font-mono tabular-nums">{course.code}</span>
             <span className="opacity-40">·</span>
             <span className="font-medium">{course.cred}cr</span>
             {course.prereqs.length > 0 && (
               <>
                 <span className="opacity-40">·</span>
-                <span>{course.prereqs.length} pre</span>
+                <span>{course.prereqs.length}p</span>
               </>
             )}
           </div>
@@ -69,9 +79,9 @@ export function CourseCard({ course, placed, onEditPrereqs }: Props) {
           }}
           onPointerDown={(e) => e.stopPropagation()}
           aria-label="Editar prerrequisitos"
-          className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded bg-card/90 text-foreground/70 shadow-sm hover:bg-card hover:text-foreground group-hover:flex"
+          className="absolute right-0.5 top-0.5 hidden h-4 w-4 items-center justify-center rounded bg-card/90 text-foreground/70 shadow-sm hover:bg-card hover:text-foreground group-hover:flex"
         >
-          <Pencil size={10} />
+          <Pencil size={9} />
         </button>
       )}
     </div>

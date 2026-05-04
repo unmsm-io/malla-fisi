@@ -29,9 +29,9 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden`}
     >
-      <body className="min-h-full bg-background text-foreground antialiased">
+      <body className="h-full overflow-hidden bg-background text-foreground antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           <Toaster
