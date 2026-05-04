@@ -19,6 +19,8 @@ import {
   RotateCcw,
   Sparkles,
   Undo2,
+  Wand2,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -30,7 +32,7 @@ import {
   getChain,
 } from "@/lib/algorithms";
 import { exportToExcel, exportToPdf } from "@/lib/export";
-import { applyProposal, type Proposal } from "@/lib/proposals";
+import { applyProposal, proposalsForWarning, type Proposal } from "@/lib/proposals";
 import { loadState, saveState } from "@/lib/storage";
 import type { Course, CoursesData, Placement } from "@/lib/types";
 import { ROMAN, cn, validatePlacement } from "@/lib/utils";
@@ -74,6 +76,7 @@ export function MallaBuilder({ data }: Props) {
   const [showCompare, setShowCompare] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [history, setHistory] = useState<Placement[]>([]);
+  const [fixSummary, setFixSummary] = useState<{ proposals: Proposal[]; before: Placement } | null>(null);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
 
@@ -130,6 +133,43 @@ export function MallaBuilder({ data }: Props) {
   function handleApplyProposal(p: Proposal) {
     commitPlacement((prev) => applyProposal(prev, p.actions));
     toast.success(p.label);
+    requestAnimationFrame(() => {
+      const code = p.affectedCodes[0];
+      if (!code) return;
+      const el = gridRef.current?.querySelector(
+        `[data-course-code="${code}"]`,
+      ) as HTMLElement | null;
+      el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    });
+  }
+
+  function handleApplyAllFixes() {
+    const before = placement;
+    const recommendedFixes = warnings
+      .map((w) => proposalsForWarning(w, { courses: allCourses, placement }))
+      .map((arr) => arr.find((p) => p.recommended) ?? arr[0])
+      .filter((p): p is Proposal => Boolean(p));
+    if (recommendedFixes.length === 0) {
+      toast.info("Sin fixes automaticos disponibles");
+      return;
+    }
+    let next = placement;
+    const applied: Proposal[] = [];
+    for (const p of recommendedFixes) {
+      const test = applyProposal(next, p.actions);
+      next = test;
+      applied.push(p);
+    }
+    commitPlacement(next);
+    setFixSummary({ proposals: applied, before });
+  }
+
+  function handleRevertFixSummary() {
+    if (!fixSummary) return;
+    setPlacement(fixSummary.before);
+    setHistory((h) => h.slice(0, -1));
+    toast.info("Cambios revertidos");
+    setFixSummary(null);
   }
 
   const sensors = useSensors(
@@ -364,6 +404,20 @@ export function MallaBuilder({ data }: Props) {
               </button>
               <button
                 type="button"
+                onClick={handleApplyAllFixes}
+                disabled={warnings.length === 0}
+                title="Aplica el fix recomendado de cada warning"
+                className={cn(
+                  "flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-40",
+                  warnings.length > 0
+                    ? "bg-violet-600 text-white hover:bg-violet-700"
+                    : "border border-border bg-card text-muted-foreground",
+                )}
+              >
+                <Wand2 size={11} /> Fix all ({warnings.length})
+              </button>
+              <button
+                type="button"
                 onClick={() => setShowEdges((v) => !v)}
                 title="Mostrar/ocultar flechas de prerequisitos"
                 className={cn(
@@ -457,9 +511,15 @@ export function MallaBuilder({ data }: Props) {
           <main
             id="malla-export"
             ref={gridRef}
-            className="relative min-h-0 overflow-auto rounded-xl border border-border bg-card/30 p-2"
+            className="relative min-h-0 overflow-auto scroll-smooth rounded-xl border border-border bg-card/30 p-2"
           >
-            <div className="grid h-full min-w-[2100px] grid-cols-10 gap-2.5">
+            <div
+              className="grid h-full gap-2.5"
+              style={{
+                gridTemplateColumns: "repeat(10, minmax(280px, 1fr))",
+                minWidth: "2800px",
+              }}
+            >
               {CYCLES.map((cycle) => (
                 <CycleColumn
                   key={cycle}
@@ -507,7 +567,104 @@ export function MallaBuilder({ data }: Props) {
           onClose={() => setShowCompare(false)}
         />
       )}
+
+      {fixSummary && (
+        <FixSummaryDialog
+          summary={fixSummary}
+          onRevert={handleRevertFixSummary}
+          onClose={() => setFixSummary(null)}
+        />
+      )}
     </DndContext>
+  );
+}
+
+function FixSummaryDialog({
+  summary,
+  onRevert,
+  onClose,
+}: {
+  summary: { proposals: Proposal[]; before: Placement };
+  onRevert: () => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[80vh] w-full max-w-md flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/15 text-violet-500">
+              <Wand2 size={16} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold">
+                {summary.proposals.length} fix
+                {summary.proposals.length !== 1 ? "es" : ""} aplicado
+                {summary.proposals.length !== 1 ? "s" : ""}
+              </h3>
+              <p className="text-[11px] text-muted-foreground">
+                Resumen de cambios automaticos
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-input/20 p-2">
+          {summary.proposals.map((p, i) => (
+            <div key={i} className="flex items-start gap-2 rounded p-1.5 text-xs">
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-violet-500/15 font-mono text-[9px] font-bold text-violet-600 dark:text-violet-400">
+                {i + 1}
+              </span>
+              <div className="flex-1">
+                <div className="font-medium leading-tight">{p.label}</div>
+                <div className="mt-0.5 text-[10px] text-muted-foreground">
+                  {p.rationale}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between gap-2 pt-1">
+          <button
+            type="button"
+            onClick={onRevert}
+            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-accent dark:text-rose-400"
+          >
+            Revertir todos
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md bg-foreground px-3 py-1.5 text-xs font-semibold text-background hover:opacity-90"
+          >
+            OK, mantener
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
