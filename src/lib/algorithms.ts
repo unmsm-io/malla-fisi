@@ -94,6 +94,25 @@ export function detectIssues(
   const warnings: Warning[] = [];
   const analysis = analyzeCycles(courses, placement);
 
+  const codeBuckets = new Map<string, Course[]>();
+  for (const c of courses) {
+    const code = c.code.trim();
+    if (!code) continue;
+    const bucket = codeBuckets.get(code) ?? [];
+    bucket.push(c);
+    codeBuckets.set(code, bucket);
+  }
+  for (const [code, bucket] of codeBuckets) {
+    if (bucket.length > 1) {
+      const names = bucket.map((c) => c.name).join(" / ");
+      warnings.push({
+        level: "error",
+        message: `Codigo duplicado "${code}": ${names}`,
+        courseCode: bucket[0].code,
+      });
+    }
+  }
+
   for (const a of analysis) {
     if (a.status === "overload") {
       warnings.push({
