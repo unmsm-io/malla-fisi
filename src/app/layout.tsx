@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Malla Curricular FISI",
-  description: "Constructor de malla curricular FISI con drag and drop y validacion de prerrequisitos",
+  title: "Malla FISI — Constructor Curricular",
+  description:
+    "Constructor de malla curricular FISI con drag-and-drop y validacion de prerrequisitos",
 };
 
 export default function RootLayout({
@@ -26,11 +28,23 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
-        {children}
-        <Toaster richColors position="top-center" />
+      <body className="min-h-full bg-background text-foreground antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster
+            richColors
+            position="top-center"
+            theme="system"
+            toastOptions={{
+              style: {
+                fontSize: "13px",
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

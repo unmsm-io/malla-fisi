@@ -2,6 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Pencil } from "lucide-react";
 import type { Course } from "@/lib/types";
 import { CATEGORY_STYLES, cn } from "@/lib/utils";
 
@@ -29,29 +30,36 @@ export function CourseCard({ course, placed, onEditPrereqs }: Props) {
       {...attributes}
       style={transformStyle}
       className={cn(
-        "group relative cursor-grab active:cursor-grabbing select-none rounded-md border-2 px-3 py-2 text-xs shadow-sm transition",
+        "group relative cursor-grab select-none rounded-lg border px-2.5 py-2 text-xs shadow-sm transition active:cursor-grabbing",
+        "hover:-translate-y-px hover:shadow-md",
         style.bg,
         style.border,
         style.text,
         isDragging && "opacity-30",
-        placed && "ring-2 ring-emerald-400",
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="font-semibold leading-tight">{course.name}</div>
-        <div className="shrink-0 rounded bg-white/60 px-1.5 py-0.5 text-[10px] font-mono">
-          {course.cred}cr
+      <div className="flex items-start gap-1.5">
+        <GripVertical
+          size={11}
+          className="mt-0.5 shrink-0 opacity-30 transition group-hover:opacity-60"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="text-[12px] font-semibold leading-snug tracking-tight">
+            {course.name}
+          </div>
+          <div className="mt-1 flex items-center gap-1.5 text-[10px] opacity-70">
+            <span className="font-mono tabular-nums">{course.code}</span>
+            <span className="opacity-40">·</span>
+            <span className="font-medium">{course.cred}cr</span>
+            {course.prereqs.length > 0 && (
+              <>
+                <span className="opacity-40">·</span>
+                <span>{course.prereqs.length} pre</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
-      <div className="mt-1 flex items-center justify-between text-[10px] opacity-70">
-        <span className="font-mono">{course.code}</span>
-        <span>{style.label}</span>
-      </div>
-      {course.prereqs.length > 0 && (
-        <div className="mt-1 text-[10px] italic opacity-70 leading-tight">
-          Pre: {course.prereqs.join(", ")}
-        </div>
-      )}
       {onEditPrereqs && course.category === "ESPECIALIDAD" && (
         <button
           type="button"
@@ -60,9 +68,10 @@ export function CourseCard({ course, placed, onEditPrereqs }: Props) {
             onEditPrereqs(course.code);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="absolute right-1 top-1 hidden rounded bg-white/80 px-1.5 py-0.5 text-[9px] font-medium text-violet-800 shadow group-hover:block hover:bg-white"
+          aria-label="Editar prerrequisitos"
+          className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded bg-card/90 text-foreground/70 shadow-sm hover:bg-card hover:text-foreground group-hover:flex"
         >
-          editar pre
+          <Pencil size={10} />
         </button>
       )}
     </div>

@@ -1,7 +1,9 @@
 "use client";
 
+import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Course } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface Props {
   course: Course | null;
@@ -15,14 +17,18 @@ export function PrereqEditor({ course, allCourses, onClose, onSave }: Props) {
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
-    if (course) setSelected(course.prereqs);
+    if (course) {
+      setSelected(course.prereqs);
+      setFilter("");
+    }
   }, [course]);
 
   if (!course) return null;
 
   const candidates = allCourses
     .filter((c) => c.code !== course.code)
-    .filter((c) => c.name.toLowerCase().includes(filter.toLowerCase()));
+    .filter((c) => c.name.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   function toggle(name: string) {
     setSelected((prev) =>
@@ -32,58 +38,104 @@ export function PrereqEditor({ course, allCourses, onClose, onSave }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[80vh] w-full max-w-lg flex-col gap-3 rounded-lg bg-white p-5 shadow-xl"
+        className="flex max-h-[85vh] w-full max-w-lg flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div>
-          <h3 className="text-base font-bold">Editar prerrequisitos</h3>
-          <p className="text-xs text-slate-600">{course.name}</p>
-        </div>
-        <input
-          type="text"
-          placeholder="Buscar curso..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none"
-        />
-        <div className="flex flex-col gap-1 overflow-y-auto rounded border border-slate-200 p-2">
-          {candidates.map((c) => (
-            <label
-              key={c.code}
-              className="flex cursor-pointer items-center gap-2 rounded p-1.5 text-xs hover:bg-slate-50"
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(c.name)}
-                onChange={() => toggle(c.name)}
-              />
-              <span className="font-mono text-[10px] text-slate-500">{c.code}</span>
-              <span>{c.name}</span>
-            </label>
-          ))}
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Editar prerrequisitos
+            </span>
+            <h3 className="mt-0.5 text-base font-bold leading-tight">{course.name}</h3>
+            <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+              {course.code}
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
+            aria-label="Cerrar"
+            className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
-            Cancelar
+            <X size={15} />
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              onSave(course.code, selected);
-              onClose();
-            }}
-            className="rounded bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
-          >
-            Guardar
-          </button>
+        </div>
+
+        <div className="relative">
+          <Search
+            size={13}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            type="text"
+            placeholder="Buscar curso..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full rounded-md border border-border bg-input/30 py-2 pl-8 pr-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+        </div>
+
+        <div className="flex flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-input/20 p-1">
+          {candidates.length === 0 ? (
+            <p className="py-6 text-center text-xs italic text-muted-foreground">
+              Sin resultados
+            </p>
+          ) : (
+            candidates.map((c) => {
+              const isSelected = selected.includes(c.name);
+              return (
+                <label
+                  key={c.code}
+                  className={cn(
+                    "flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs transition",
+                    isSelected
+                      ? "bg-accent text-accent-foreground"
+                      : "hover:bg-accent/50",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggle(c.name)}
+                    className="accent-foreground"
+                  />
+                  <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                    {c.code}
+                  </span>
+                  <span className="truncate">{c.name}</span>
+                </label>
+              );
+            })
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <span className="text-[11px] text-muted-foreground">
+            {selected.length} seleccionado{selected.length !== 1 ? "s" : ""}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onSave(course.code, selected);
+                onClose();
+              }}
+              className="rounded-md bg-foreground px-3 py-1.5 text-xs font-semibold text-background hover:opacity-90"
+            >
+              Guardar cambios
+            </button>
+          </div>
         </div>
       </div>
     </div>

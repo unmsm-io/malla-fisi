@@ -33,9 +33,7 @@ export function validatePlacement(
   const missing: ValidationResult["missing"] = [];
   for (const prereqName of course.prereqs) {
     const prereqCourse = findCourseByName(prereqName, allCourses);
-    if (!prereqCourse) {
-      continue;
-    }
+    if (!prereqCourse) continue;
     const prereqCycle = placement[prereqCourse.code];
     if (prereqCycle === undefined) {
       missing.push({ prereqName: prereqCourse.name, reason: "not-placed" });
@@ -50,24 +48,27 @@ export const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X
 
 export const CATEGORY_STYLES: Record<
   Course["category"],
-  { bg: string; border: string; text: string; label: string }
+  { bg: string; border: string; text: string; ring: string; label: string }
 > = {
   EEGG: {
-    bg: "bg-amber-50",
-    border: "border-amber-300",
-    text: "text-amber-900",
+    bg: "bg-eegg-bg",
+    border: "border-eegg-border",
+    text: "text-eegg-fg",
+    ring: "ring-eegg-border",
     label: "EEGG",
   },
   ESPECIFICO: {
-    bg: "bg-sky-50",
-    border: "border-sky-300",
-    text: "text-sky-900",
+    bg: "bg-especifico-bg",
+    border: "border-especifico-border",
+    text: "text-especifico-fg",
+    ring: "ring-especifico-border",
     label: "Especifico",
   },
   ESPECIALIDAD: {
-    bg: "bg-violet-50",
-    border: "border-violet-300",
-    text: "text-violet-900",
+    bg: "bg-especialidad-bg",
+    border: "border-especialidad-border",
+    text: "text-especialidad-fg",
+    ring: "ring-especialidad-border",
     label: "Especialidad",
   },
 };
