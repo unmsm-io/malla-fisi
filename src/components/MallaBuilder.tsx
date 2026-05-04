@@ -153,7 +153,7 @@ export function MallaBuilder({ data }: Props) {
   }
 
   function handleOpenFixPreview() {
-    const result = solveIssues(allCourses, placement, { includeWarnings: true });
+    const result = solveIssues(allCourses, placement, { includeWarnings: false });
     setFixPreview({
       proposals: result.appliedProposals,
       finalPlacement: result.finalPlacement,
@@ -338,6 +338,7 @@ export function MallaBuilder({ data }: Props) {
 
   const totalCredits = analysis.reduce((s, a) => s + a.credits, 0);
   const placedCount = Object.keys(placement).length;
+  const errorCount = warnings.filter((w) => w.level === "error").length;
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -404,16 +405,20 @@ export function MallaBuilder({ data }: Props) {
               <button
                 type="button"
                 onClick={handleOpenFixPreview}
-                disabled={warnings.length === 0}
-                title="Genera un plan de fixes y muestra preview antes de aplicar"
+                disabled={errorCount === 0}
+                title={
+                  errorCount === 0
+                    ? "No hay errores que arreglar (solo warnings de sobrecarga)"
+                    : "Genera un plan de fixes para los errores y muestra preview"
+                }
                 className={cn(
                   "flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-40",
-                  warnings.length > 0
+                  errorCount > 0
                     ? "bg-violet-600 text-white hover:bg-violet-700"
                     : "border border-border bg-card text-muted-foreground",
                 )}
               >
-                <Wand2 size={11} /> Fix all ({warnings.length})
+                <Wand2 size={11} /> Fix all ({errorCount})
               </button>
               <button
                 type="button"
