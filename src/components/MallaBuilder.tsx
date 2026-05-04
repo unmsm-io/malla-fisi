@@ -436,12 +436,14 @@ export function MallaBuilder({ data }: Props) {
                 className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
             </div>
-            <IconButton
-              icon={Upload}
+            <button
+              type="button"
               onClick={() => setShowImport(true)}
-              tooltip="Importar carrera desde Excel"
-              variant="dashed"
-            />
+              title="Importar carrera desde Excel"
+              className="flex items-center gap-1 rounded-md border border-dashed border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:border-emerald-500/40 hover:text-foreground"
+            >
+              <Upload size={11} /> Importar
+            </button>
             {importedCareers[careerSlug] && (
               <IconButton
                 icon={Trash2}
@@ -464,11 +466,14 @@ export function MallaBuilder({ data }: Props) {
             </div>
 
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
-              <IconButton
-                icon={BookCheck}
+              <button
+                type="button"
                 onClick={handleLoadDefault}
-                tooltip="Cargar la malla sugerida por el Excel original"
-              />
+                title="Cargar la malla sugerida por el Excel original"
+                className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent"
+              >
+                <BookCheck size={11} /> Plan oficial
+              </button>
               <button
                 type="button"
                 onClick={handleAutoOrganize}
@@ -955,11 +960,16 @@ function ExportMenu({
   onPdf: () => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
+  const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target)) return;
+      const menu = document.getElementById("export-menu-portal");
+      if (menu?.contains(target)) return;
+      setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -974,19 +984,40 @@ function ExportMenu({
     };
   }, [open]);
 
+  function toggle() {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setCoords({ left: rect.right - 176, top: rect.bottom + 6 });
+    setOpen(true);
+  }
+
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggle}
         title="Exportar malla"
         className="flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
       >
         <Download size={11} /> Exportar
         <ChevronDown size={10} className={cn("transition", open && "rotate-180")} />
       </button>
-      {open && (
-        <div className="absolute right-0 top-9 z-30 w-44 overflow-hidden rounded-md border border-border bg-card shadow-xl">
+      {open && coords && (
+        <div
+          id="export-menu-portal"
+          style={{
+            position: "fixed",
+            left: coords.left,
+            top: coords.top,
+            zIndex: 100,
+          }}
+          className="w-44 overflow-hidden rounded-md border border-border bg-card shadow-xl"
+        >
           <button
             type="button"
             onClick={() => {
@@ -1018,6 +1049,6 @@ function ExportMenu({
           </button>
         </div>
       )}
-    </div>
+    </>
   );
 }
