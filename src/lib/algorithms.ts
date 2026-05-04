@@ -15,9 +15,9 @@ export interface Warning {
 }
 
 export const CREDIT_TARGETS = {
-  low: 14,
-  ok: 18,
-  heavy: 24,
+  low: 16,
+  ok: 22,
+  heavy: 25,
 };
 
 export function autoOrganize(courses: Course[]): Placement {
@@ -82,7 +82,7 @@ export function analyzeCycles(
     if (inCycle.length === 0) status = "empty";
     else if (credits < CREDIT_TARGETS.low) status = "low";
     else if (credits > CREDIT_TARGETS.heavy) status = "overload";
-    else if (credits > CREDIT_TARGETS.ok + 2) status = "heavy";
+    else if (credits > CREDIT_TARGETS.ok) status = "heavy";
     return { cycle, count: inCycle.length, credits, status };
   });
 }

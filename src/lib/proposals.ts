@@ -55,7 +55,7 @@ function rankByCreditBalance(
   cred: number,
 ): number[] {
   const analysis = analyzeCycles(ctx.courses, ctx.placement);
-  const SAFE_MAX = 22;
+  const SAFE_MAX = 25;
   return [...cycles].sort((a, b) => {
     const newA = analysis[a - 1].credits + cred;
     const newB = analysis[b - 1].credits + cred;
