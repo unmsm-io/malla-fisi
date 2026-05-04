@@ -153,15 +153,7 @@ export function MallaBuilder({ data }: Props) {
   }
 
   function handleOpenFixPreview() {
-    const result = solveIssues(allCourses, placement);
-    if (result.appliedProposals.length === 0) {
-      toast.info(
-        result.remainingErrors.length > 0
-          ? "Ningun fix automatico mejora la malla. Ajusta manualmente."
-          : "Sin issues que arreglar",
-      );
-      return;
-    }
+    const result = solveIssues(allCourses, placement, { includeWarnings: true });
     setFixPreview({
       proposals: result.appliedProposals,
       finalPlacement: result.finalPlacement,
@@ -611,11 +603,14 @@ function FixPreviewDialog({
   }, [onCancel, onConfirm]);
 
   const remaining = preview.remainingErrors.length;
-  const reasonLabel = {
-    converged: "Solucion completa encontrada",
-    "max-iterations": "Limite de iteraciones alcanzado",
-    "no-progress": "No se encontraron mas mejoras posibles",
-  }[preview.reason];
+  const nothingToApply = preview.proposals.length === 0;
+  const reasonLabel = nothingToApply
+    ? "El solver no encontro ningun cambio que mejore la malla"
+    : {
+        converged: "Solucion completa encontrada",
+        "max-iterations": "Limite de iteraciones alcanzado",
+        "no-progress": "No se encontraron mas mejoras posibles",
+      }[preview.reason];
 
   return (
     <div
@@ -667,21 +662,34 @@ function FixPreviewDialog({
           {preview.iterations !== 1 ? "es" : ""}
         </div>
 
-        <div className="flex flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-input/20 p-2">
-          {preview.proposals.map((p, i) => (
-            <div key={i} className="flex items-start gap-2 rounded p-1.5 text-xs">
-              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-violet-500/15 font-mono text-[9px] font-bold text-violet-600 dark:text-violet-400">
-                {i + 1}
-              </span>
-              <div className="flex-1">
-                <div className="font-medium leading-tight">{p.label}</div>
-                <div className="mt-0.5 text-[10px] text-muted-foreground">
-                  {p.rationale}
+        {nothingToApply ? (
+          <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs leading-snug">
+            <div className="font-semibold text-amber-700 dark:text-amber-400">
+              Nada que aplicar automaticamente
+            </div>
+            <p className="mt-1 text-muted-foreground">
+              Los issues actuales (sobrecargas o restricciones del catalogo) no tienen
+              una solucion automatica que no genere otros problemas. Revisa abajo y
+              ajusta manualmente si quieres.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-input/20 p-2">
+            {preview.proposals.map((p, i) => (
+              <div key={i} className="flex items-start gap-2 rounded p-1.5 text-xs">
+                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-violet-500/15 font-mono text-[9px] font-bold text-violet-600 dark:text-violet-400">
+                  {i + 1}
+                </span>
+                <div className="flex-1">
+                  <div className="font-medium leading-tight">{p.label}</div>
+                  <div className="mt-0.5 text-[10px] text-muted-foreground">
+                    {p.rationale}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {remaining > 0 && (
           <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-2 text-[11px] leading-tight">
@@ -712,12 +720,13 @@ function FixPreviewDialog({
             onClick={onCancel}
             className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
           >
-            Cancelar
+            {nothingToApply ? "Cerrar" : "Cancelar"}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex items-center gap-1.5 rounded-md bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
+            disabled={nothingToApply}
+            className="flex items-center gap-1.5 rounded-md bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Wand2 size={11} /> Aplicar {preview.proposals.length} cambio
             {preview.proposals.length !== 1 ? "s" : ""}

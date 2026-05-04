@@ -61,10 +61,12 @@ export function solveIssues(
   let iterations = 0;
   let reason: SolveResult["reason"] = "max-iterations";
 
+  const includeWarnings = options.includeWarnings ?? true;
+
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     iterations++;
     const warnings = detectIssues(courses, placement);
-    const targets = options.includeWarnings
+    const targets = includeWarnings
       ? warnings.filter((w) => w.level !== "info")
       : warnings.filter((w) => w.level === "error");
 
