@@ -23,6 +23,7 @@ export function findCourseByName(name: string, all: Course[]): Course | null {
 export interface ValidationResult {
   ok: boolean;
   missing: { prereqName: string; reason: "not-placed" | "same-or-later-cycle" }[];
+  conflicts: { dependentName: string; dependentCycle: number }[];
 }
 
 export function validatePlacement(
@@ -42,7 +43,22 @@ export function validatePlacement(
       missing.push({ prereqName: prereqCourse.name, reason: "same-or-later-cycle" });
     }
   }
-  return { ok: missing.length === 0, missing };
+
+  const conflicts: ValidationResult["conflicts"] = [];
+  for (const other of allCourses) {
+    if (other.code === course.code) continue;
+    const otherCycle = placement[other.code];
+    if (otherCycle === undefined) continue;
+    const dependsOnCourse = other.prereqs.some((p) => {
+      const found = findCourseByName(p, allCourses);
+      return found?.code === course.code;
+    });
+    if (dependsOnCourse && otherCycle <= targetCycle) {
+      conflicts.push({ dependentName: other.name, dependentCycle: otherCycle });
+    }
+  }
+
+  return { ok: missing.length === 0 && conflicts.length === 0, missing, conflicts };
 }
 
 export const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];

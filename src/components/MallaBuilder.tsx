@@ -193,17 +193,26 @@ export function MallaBuilder({ data }: Props) {
       const targetCycle = Number(overId.replace("cycle-", ""));
       const result = validatePlacement(course, targetCycle, placement, allCourses);
       if (!result.ok) {
-        const items = result.missing
-          .map((m) =>
-            m.reason === "not-placed"
-              ? `• ${m.prereqName} (no colocado)`
-              : `• ${m.prereqName} (debe ir antes del ciclo ${ROMAN[targetCycle - 1]})`,
-          )
-          .join("\n");
-        toast.error(
-          `Falta${result.missing.length > 1 ? "n" : ""} prerrequisito${result.missing.length > 1 ? "s" : ""}:\n${items}`,
-          { duration: 6000 },
-        );
+        const lines: string[] = [];
+        if (result.missing.length > 0) {
+          lines.push("Prerrequisitos faltantes:");
+          for (const m of result.missing) {
+            lines.push(
+              m.reason === "not-placed"
+                ? `• ${m.prereqName} (no colocado)`
+                : `• ${m.prereqName} (debe ir antes del ciclo ${ROMAN[targetCycle - 1]})`,
+            );
+          }
+        }
+        if (result.conflicts.length > 0) {
+          lines.push("Romperia dependientes ya colocados:");
+          for (const c of result.conflicts) {
+            lines.push(
+              `• ${c.dependentName} (ciclo ${ROMAN[c.dependentCycle - 1]}) depende de este curso`,
+            );
+          }
+        }
+        toast.error(lines.join("\n"), { duration: 7000 });
         return;
       }
       setPlacement((prev) => ({ ...prev, [course.code]: targetCycle }));
