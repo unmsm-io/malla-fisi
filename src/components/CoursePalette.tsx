@@ -3,7 +3,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import type { Course } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { CourseCard } from "./CourseCard";
+import { CardHighlight, CourseCard } from "./CourseCard";
 
 interface Props {
   title: string;
@@ -11,7 +11,7 @@ interface Props {
   droppableId: string;
   onEditPrereqs: (code: string) => void;
   onHover: (code: string | null) => void;
-  hoveredCode: string | null;
+  highlightFor: (code: string) => CardHighlight;
   accent: "sky" | "violet";
   totalCount: number;
 }
@@ -27,7 +27,7 @@ export function CoursePalette({
   droppableId,
   onEditPrereqs,
   onHover,
-  hoveredCode,
+  highlightFor,
   accent,
   totalCount,
 }: Props) {
@@ -52,7 +52,7 @@ export function CoursePalette({
           {placedCount}/{totalCount}
         </span>
       </div>
-      <div className="flex flex-1 flex-col gap-1 overflow-y-auto pr-0.5">
+      <div className="-mx-1 flex flex-1 flex-col gap-1.5 overflow-y-auto px-1 py-1 pr-1.5">
         {courses.length === 0 ? (
           <p className="py-3 text-center text-[10px] italic text-muted-foreground">
             Todos colocados
@@ -64,7 +64,7 @@ export function CoursePalette({
               course={course}
               onEditPrereqs={accent === "violet" ? onEditPrereqs : undefined}
               onHover={onHover}
-              highlighted={hoveredCode === course.code}
+              highlight={highlightFor(course.code)}
             />
           ))
         )}

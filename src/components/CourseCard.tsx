@@ -6,18 +6,27 @@ import { GripVertical, Pencil } from "lucide-react";
 import type { Course } from "@/lib/types";
 import { CATEGORY_STYLES, cn } from "@/lib/utils";
 
+export type CardHighlight = "none" | "self" | "ancestor" | "descendant";
+
 interface Props {
   course: Course;
   placed?: boolean;
-  highlighted?: boolean;
+  highlight?: CardHighlight;
   onEditPrereqs?: (code: string) => void;
   onHover?: (code: string | null) => void;
 }
 
+const highlightStyles: Record<CardHighlight, string> = {
+  none: "",
+  self: "ring-2 ring-violet-500 ring-offset-2 ring-offset-background z-10",
+  ancestor: "ring-2 ring-sky-500 ring-offset-1 ring-offset-background z-10",
+  descendant: "ring-2 ring-emerald-500 ring-offset-1 ring-offset-background z-10",
+};
+
 export function CourseCard({
   course,
   placed,
-  highlighted,
+  highlight = "none",
   onEditPrereqs,
   onHover,
 }: Props) {
@@ -47,7 +56,7 @@ export function CourseCard({
         style.border,
         style.text,
         isDragging && "opacity-30",
-        highlighted && "ring-2 ring-violet-500 ring-offset-1 ring-offset-background",
+        highlightStyles[highlight],
       )}
     >
       <div className="flex items-start gap-1">

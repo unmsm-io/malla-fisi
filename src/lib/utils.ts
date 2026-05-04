@@ -9,7 +9,8 @@ export function cn(...inputs: ClassValue[]) {
 export function normalizeName(s: string): string {
   return s
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/\s+/g, " ")
     .trim()
     .toUpperCase();
 }

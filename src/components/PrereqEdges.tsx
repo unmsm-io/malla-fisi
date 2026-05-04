@@ -5,21 +5,26 @@ import type { Course, Placement } from "@/lib/types";
 import { findCourseByName } from "@/lib/utils";
 
 interface Edge {
+  fromCode: string;
+  toCode: string;
   from: { x: number; y: number };
   to: { x: number; y: number };
   highlighted: boolean;
-  fromCycle: number;
-  toCycle: number;
 }
 
 interface Props {
   courses: Course[];
   placement: Placement;
-  hoveredCode: string | null;
+  highlightedEdgeCodes: Set<string>;
   containerRef: React.RefObject<HTMLElement | null>;
 }
 
-export function PrereqEdges({ courses, placement, hoveredCode, containerRef }: Props) {
+export function PrereqEdges({
+  courses,
+  placement,
+  highlightedEdgeCodes,
+  containerRef,
+}: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -51,25 +56,27 @@ export function PrereqEdges({ courses, placement, hoveredCode, containerRef }: P
           const sourceRect = (sourceEl as HTMLElement).getBoundingClientRect();
 
           const isHighlighted =
-            hoveredCode === course.code || hoveredCode === prereq.code;
+            highlightedEdgeCodes.has(course.code) &&
+            highlightedEdgeCodes.has(prereq.code);
 
           next.push({
+            fromCode: prereq.code,
+            toCode: course.code,
             from: {
               x: sourceRect.right - containerRect.left + container.scrollLeft,
               y:
                 sourceRect.top + sourceRect.height / 2 - containerRect.top + container.scrollTop,
             },
             to: {
-              x: targetRect.left - containerRect.left + container.scrollLeft,
+              x: targetRect.left - containerRect.left + container.scrollLeft - 4,
               y:
                 targetRect.top + targetRect.height / 2 - containerRect.top + container.scrollTop,
             },
             highlighted: isHighlighted,
-            fromCycle: placement[prereq.code],
-            toCycle: placement[course.code],
           });
         }
       }
+      next.sort((a, b) => Number(a.highlighted) - Number(b.highlighted));
       setEdges(next);
     }
 
@@ -81,7 +88,7 @@ export function PrereqEdges({ courses, placement, hoveredCode, containerRef }: P
       observer.disconnect();
       window.removeEventListener("resize", compute);
     };
-  }, [courses, placement, hoveredCode, containerRef]);
+  }, [courses, placement, highlightedEdgeCodes, containerRef]);
 
   if (edges.length === 0) return null;
 
@@ -115,19 +122,19 @@ export function PrereqEdges({ courses, placement, hoveredCode, containerRef }: P
           <polygon points="0 0, 7 3.5, 0 7" fill="oklch(0.65 0.18 270)" />
         </marker>
       </defs>
-      {edges.map((edge, i) => {
+      {edges.map((edge) => {
         const dx = edge.to.x - edge.from.x;
-        const cx1 = edge.from.x + dx * 0.5;
-        const cx2 = edge.to.x - dx * 0.5;
-        const path = `M ${edge.from.x} ${edge.from.y} C ${cx1} ${edge.from.y}, ${cx2} ${edge.to.y}, ${edge.to.x - 4} ${edge.to.y}`;
+        const cx1 = edge.from.x + Math.max(dx * 0.5, 30);
+        const cx2 = edge.to.x - Math.max(dx * 0.5, 30);
+        const path = `M ${edge.from.x} ${edge.from.y} C ${cx1} ${edge.from.y}, ${cx2} ${edge.to.y}, ${edge.to.x} ${edge.to.y}`;
         return (
           <path
-            key={i}
+            key={`${edge.fromCode}->${edge.toCode}`}
             d={path}
             fill="none"
             stroke={edge.highlighted ? "oklch(0.65 0.18 270)" : "currentColor"}
-            strokeWidth={edge.highlighted ? 1.8 : 1}
-            opacity={edge.highlighted ? 1 : 0.18}
+            strokeWidth={edge.highlighted ? 2 : 1}
+            opacity={edge.highlighted ? 1 : 0.15}
             markerEnd={
               edge.highlighted ? "url(#arrowhead-active)" : "url(#arrowhead)"
             }

@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { autoOrganize } from "@/lib/algorithms";
 import type { Course, CoursesData } from "@/lib/types";
 import { CATEGORY_STYLES, ROMAN, cn, normalizeName } from "@/lib/utils";
@@ -38,6 +38,14 @@ export function CompareView({ data, onClose }: Props) {
     () => buildSnapshot(careerSlugs[1] ?? careerSlugs[0], data),
     [data, careerSlugs],
   );
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   const sharedNames = useMemo(() => {
     const leftNames = new Set(left.courses.map((c) => normalizeName(c.name)));

@@ -118,7 +118,16 @@ export function detectIssues(
     const myCycle = placement[course.code];
     for (const prereqName of course.prereqs) {
       const prereq = findCourseByName(prereqName, courses);
-      if (!prereq) continue;
+      if (!prereq) {
+        if (prereqName && prereqName.toUpperCase() !== "NINGUNO") {
+          warnings.push({
+            level: "warning",
+            message: `${course.name}: prereq "${prereqName}" no se encuentra en el catalogo (typo o curso ausente)`,
+            courseCode: course.code,
+          });
+        }
+        continue;
+      }
       const prereqCycle = placement[prereq.code];
       if (prereqCycle === undefined) {
         warnings.push({
@@ -177,4 +186,61 @@ export function getDescendants(
     }
   }
   return result;
+}
+
+export function getAncestors(
+  course: Course,
+  allCourses: Course[],
+): Course[] {
+  const result: Course[] = [];
+  const queue = [course];
+  const seen = new Set<string>([course.code]);
+  while (queue.length > 0) {
+    const c = queue.shift();
+    if (!c) break;
+    for (const prereqName of c.prereqs) {
+      const prereq = findCourseByName(prereqName, allCourses);
+      if (!prereq || seen.has(prereq.code)) continue;
+      seen.add(prereq.code);
+      result.push(prereq);
+      queue.push(prereq);
+    }
+  }
+  return result;
+}
+
+export function getChain(
+  code: string,
+  allCourses: Course[],
+): { ancestors: Set<string>; descendants: Set<string> } {
+  const root = allCourses.find((c) => c.code === code);
+  if (!root) return { ancestors: new Set(), descendants: new Set() };
+  return {
+    ancestors: new Set(getAncestors(root, allCourses).map((c) => c.code)),
+    descendants: new Set(getDescendants(root, allCourses).map((c) => c.code)),
+  };
+}
+
+export function findOrphanPrereqs(courses: Course[]): {
+  course: Course;
+  unresolved: string[];
+}[] {
+  return courses
+    .map((c) => ({
+      course: c,
+      unresolved: c.prereqs.filter(
+        (name) => name && name.toUpperCase() !== "NINGUNO" && !findCourseByName(name, courses),
+      ),
+    }))
+    .filter((r) => r.unresolved.length > 0);
+}
+
+export function defaultPlacementFromExcel(courses: Course[]): Placement {
+  const placement: Placement = {};
+  for (const c of courses) {
+    if (c.defaultCycle >= 1 && c.defaultCycle <= 10) {
+      placement[c.code] = c.defaultCycle;
+    }
+  }
+  return placement;
 }

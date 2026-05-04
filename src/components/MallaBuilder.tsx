@@ -10,6 +10,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
+  BookCheck,
   ChevronDown,
   Columns,
   Download,
@@ -18,14 +19,21 @@ import {
   RotateCcw,
   Sparkles,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { analyzeCycles, autoOrganize, detectIssues } from "@/lib/algorithms";
+import {
+  analyzeCycles,
+  autoOrganize,
+  defaultPlacementFromExcel,
+  detectIssues,
+  getChain,
+} from "@/lib/algorithms";
 import { exportToExcel, exportToPdf } from "@/lib/export";
+import { loadState, saveState } from "@/lib/storage";
 import type { Course, CoursesData, Placement } from "@/lib/types";
 import { ROMAN, cn, validatePlacement } from "@/lib/utils";
 import { CompareView } from "./CompareView";
-import { CourseCard } from "./CourseCard";
+import { CardHighlight, CourseCard } from "./CourseCard";
 import { CoursePalette } from "./CoursePalette";
 import { CycleColumn } from "./CycleColumn";
 import { IssuesPanel } from "./IssuesPanel";
@@ -61,14 +69,32 @@ export function MallaBuilder({ data }: Props) {
   const [hoveredCode, setHoveredCode] = useState<string | null>(null);
   const [showEdges, setShowEdges] = useState(true);
   const [showCompare, setShowCompare] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const saved = loadState(careerSlug);
+    if (saved) {
+      setPlacement(saved.placement);
+      setSpecialtyOverrides(saved.specialtyOverrides);
+    } else {
+      setPlacement({});
+      setSpecialtyOverrides({});
+    }
+    setHydrated(true);
+  }, [careerSlug]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    saveState(careerSlug, { placement, specialtyOverrides });
+  }, [careerSlug, placement, specialtyOverrides, hydrated]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
   );
 
-  const placedCodes = new Set(Object.keys(placement));
+  const placedCodes = useMemo(() => new Set(Object.keys(placement)), [placement]);
   const totalSpecifics = career.specifics.length;
   const totalSpecialty = career.specialty.length;
 
@@ -86,6 +112,27 @@ export function MallaBuilder({ data }: Props) {
   const warnings = useMemo(
     () => detectIssues(allCourses, placement),
     [allCourses, placement],
+  );
+
+  const chain = useMemo(() => {
+    if (!hoveredCode) return { ancestors: new Set<string>(), descendants: new Set<string>() };
+    return getChain(hoveredCode, allCourses);
+  }, [hoveredCode, allCourses]);
+
+  const highlightedEdgeCodes = useMemo(() => {
+    if (!hoveredCode) return new Set<string>();
+    return new Set([hoveredCode, ...chain.ancestors, ...chain.descendants]);
+  }, [hoveredCode, chain]);
+
+  const highlightFor = useCallback(
+    (code: string): CardHighlight => {
+      if (!hoveredCode) return "none";
+      if (code === hoveredCode) return "self";
+      if (chain.ancestors.has(code)) return "ancestor";
+      if (chain.descendants.has(code)) return "descendant";
+      return "none";
+    },
+    [hoveredCode, chain],
   );
 
   function coursesInCycle(cycle: number): Course[] {
@@ -111,6 +158,29 @@ export function MallaBuilder({ data }: Props) {
 
     if (overId === "palette-specifics" || overId === "palette-specialty") {
       if (placement[course.code] !== undefined) {
+        const { descendants } = getChain(course.code, allCourses);
+        const placedDescendants = [...descendants].filter((c) =>
+          placedCodes.has(c),
+        );
+        if (placedDescendants.length > 0) {
+          const ok = window.confirm(
+            `${course.name} tiene ${placedDescendants.length} curso(s) descendiente(s) ya colocado(s) que dependen de el. ¿Quitar tambien los descendientes en cascada?`,
+          );
+          const next = { ...placement };
+          delete next[course.code];
+          if (ok) {
+            for (const code of placedDescendants) delete next[code];
+            toast.info(
+              `${course.name} y ${placedDescendants.length} descendiente(s) regresados al panel`,
+            );
+          } else {
+            toast.warning(
+              `${course.name} regresado, pero ${placedDescendants.length} descendiente(s) ahora estan invalidos`,
+            );
+          }
+          setPlacement(next);
+          return;
+        }
         const next = { ...placement };
         delete next[course.code];
         setPlacement(next);
@@ -123,14 +193,17 @@ export function MallaBuilder({ data }: Props) {
       const targetCycle = Number(overId.replace("cycle-", ""));
       const result = validatePlacement(course, targetCycle, placement, allCourses);
       if (!result.ok) {
-        const list = result.missing
+        const items = result.missing
           .map((m) =>
             m.reason === "not-placed"
-              ? `${m.prereqName} (no colocado)`
-              : `${m.prereqName} (debe ir antes del ciclo ${ROMAN[targetCycle - 1]})`,
+              ? `• ${m.prereqName} (no colocado)`
+              : `• ${m.prereqName} (debe ir antes del ciclo ${ROMAN[targetCycle - 1]})`,
           )
-          .join(", ");
-        toast.error(`Falta prerrequisito: ${list}`);
+          .join("\n");
+        toast.error(
+          `Falta${result.missing.length > 1 ? "n" : ""} prerrequisito${result.missing.length > 1 ? "s" : ""}:\n${items}`,
+          { duration: 6000 },
+        );
         return;
       }
       setPlacement((prev) => ({ ...prev, [course.code]: targetCycle }));
@@ -142,7 +215,19 @@ export function MallaBuilder({ data }: Props) {
     const auto = autoOrganize(allCourses);
     setPlacement(auto);
     const placedN = Object.keys(auto).length;
-    toast.success(`Auto-organizado: ${placedN} cursos`);
+    if (placedN < allCourses.length) {
+      toast.warning(
+        `Auto: ${placedN}/${allCourses.length} cursos colocados. ${allCourses.length - placedN} no caben (probable ciclo de prereqs).`,
+      );
+    } else {
+      toast.success(`Auto-organizado: ${placedN} cursos`);
+    }
+  }
+
+  function handleLoadDefault() {
+    const def = defaultPlacementFromExcel(allCourses);
+    setPlacement(def);
+    toast.success(`Plan oficial cargado (${Object.keys(def).length} cursos)`);
   }
 
   function handleReset() {
@@ -181,11 +266,7 @@ export function MallaBuilder({ data }: Props) {
             <div className="relative">
               <select
                 value={careerSlug}
-                onChange={(e) => {
-                  setCareerSlug(e.target.value);
-                  setPlacement({});
-                  setSpecialtyOverrides({});
-                }}
+                onChange={(e) => setCareerSlug(e.target.value)}
                 className="appearance-none rounded-md border border-border bg-card py-1 pl-2.5 pr-7 text-xs font-medium outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
               >
                 {careerSlugs.map((slug) => (
@@ -212,10 +293,19 @@ export function MallaBuilder({ data }: Props) {
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5 ml-auto">
+            <div className="ml-auto flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleLoadDefault}
+                title="Cargar la malla sugerida por el Excel original"
+                className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent"
+              >
+                <BookCheck size={11} /> Plan oficial
+              </button>
               <button
                 type="button"
                 onClick={handleAutoOrganize}
+                title="Coloca todos los cursos en el ciclo minimo posible"
                 className="flex items-center gap-1 rounded-md bg-foreground px-2.5 py-1 text-[11px] font-semibold text-background hover:opacity-90"
               >
                 <Sparkles size={11} /> Auto
@@ -223,6 +313,7 @@ export function MallaBuilder({ data }: Props) {
               <button
                 type="button"
                 onClick={() => setShowEdges((v) => !v)}
+                title="Mostrar/ocultar flechas de prerequisitos"
                 className={cn(
                   "flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition",
                   showEdges
@@ -235,6 +326,7 @@ export function MallaBuilder({ data }: Props) {
               <button
                 type="button"
                 onClick={() => setShowCompare(true)}
+                title="Comparar carreras lado a lado"
                 className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent"
               >
                 <Columns size={11} /> Comparar
@@ -243,6 +335,7 @@ export function MallaBuilder({ data }: Props) {
                 type="button"
                 onClick={handleReset}
                 disabled={placedCount === 0}
+                title="Vaciar la malla"
                 className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <RotateCcw size={11} /> Limpiar
@@ -250,6 +343,7 @@ export function MallaBuilder({ data }: Props) {
               <button
                 type="button"
                 onClick={() => exportToExcel(allCourses, placement, career.label)}
+                title="Exportar malla a Excel"
                 className="flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
               >
                 <FileSpreadsheet size={11} /> Excel
@@ -257,6 +351,7 @@ export function MallaBuilder({ data }: Props) {
               <button
                 type="button"
                 onClick={() => exportToPdf(career.label)}
+                title="Exportar malla a PDF"
                 className="flex items-center gap-1 rounded-md bg-rose-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-700"
               >
                 <Download size={11} /> PDF
@@ -264,9 +359,10 @@ export function MallaBuilder({ data }: Props) {
               <ThemeToggle />
             </div>
           </div>
+          <HintBar />
         </header>
 
-        <div className="grid min-h-0 flex-1 grid-cols-[260px_1fr] gap-2 p-2 lg:gap-3 lg:p-3">
+        <div className="grid min-h-0 flex-1 grid-cols-[300px_1fr] gap-2 p-2 lg:gap-3 lg:p-3">
           <aside className="flex min-h-0 flex-col gap-2">
             <CoursePalette
               title={`Especificos (${totalSpecifics})`}
@@ -274,7 +370,7 @@ export function MallaBuilder({ data }: Props) {
               droppableId="palette-specifics"
               onEditPrereqs={() => undefined}
               onHover={setHoveredCode}
-              hoveredCode={hoveredCode}
+              highlightFor={highlightFor}
               accent="sky"
               totalCount={totalSpecifics}
             />
@@ -284,7 +380,7 @@ export function MallaBuilder({ data }: Props) {
               droppableId="palette-specialty"
               onEditPrereqs={setEditingCode}
               onHover={setHoveredCode}
-              hoveredCode={hoveredCode}
+              highlightFor={highlightFor}
               accent="violet"
               totalCount={totalSpecialty}
             />
@@ -296,14 +392,14 @@ export function MallaBuilder({ data }: Props) {
             ref={gridRef}
             className="relative min-h-0 overflow-auto rounded-xl border border-border bg-card/30 p-2"
           >
-            <div className="grid h-full min-w-[1400px] grid-cols-10 gap-1.5">
+            <div className="grid h-full min-w-[2100px] grid-cols-10 gap-2.5">
               {CYCLES.map((cycle) => (
                 <CycleColumn
                   key={cycle}
                   cycle={cycle}
                   courses={coursesInCycle(cycle)}
                   analysis={analysis[cycle - 1]}
-                  hoveredCode={hoveredCode}
+                  highlightFor={highlightFor}
                   onHover={setHoveredCode}
                   onEditPrereqs={setEditingCode}
                 />
@@ -313,7 +409,7 @@ export function MallaBuilder({ data }: Props) {
               <PrereqEdges
                 courses={allCourses}
                 placement={placement}
-                hoveredCode={hoveredCode}
+                highlightedEdgeCodes={highlightedEdgeCodes}
                 containerRef={gridRef}
               />
             )}
@@ -340,6 +436,34 @@ export function MallaBuilder({ data }: Props) {
         <CompareView data={data} onClose={() => setShowCompare(false)} />
       )}
     </DndContext>
+  );
+}
+
+function HintBar() {
+  return (
+    <div className="hidden border-t border-border/60 bg-muted/30 px-4 py-1 text-[10px] text-muted-foreground md:flex md:items-center md:gap-4">
+      <span>
+        <kbd className="rounded border border-border bg-card px-1 font-mono text-[9px]">
+          Hover
+        </kbd>{" "}
+        resalta cadena de prereqs y dependientes
+      </span>
+      <span className="opacity-40">·</span>
+      <span>
+        <span className="inline-block h-2 w-2 rounded-full bg-sky-500" /> prereqs ·{" "}
+        <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />{" "}
+        dependientes
+      </span>
+      <span className="opacity-40">·</span>
+      <span>Drag a panel para quitar (cascade opcional)</span>
+      <span className="opacity-40">·</span>
+      <span>
+        <kbd className="rounded border border-border bg-card px-1 font-mono text-[9px]">
+          Esc
+        </kbd>{" "}
+        cierra modales · Tu malla se guarda automaticamente
+      </span>
+    </div>
   );
 }
 

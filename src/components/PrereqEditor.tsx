@@ -23,6 +23,15 @@ export function PrereqEditor({ course, allCourses, onClose, onSave }: Props) {
     }
   }, [course]);
 
+  useEffect(() => {
+    if (!course) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [course, onClose]);
+
   if (!course) return null;
 
   const candidates = allCourses
