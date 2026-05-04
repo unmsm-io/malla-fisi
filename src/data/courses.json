@@ -1,0 +1,1621 @@
+{
+  "careers": {
+    "ingenieria-ia": {
+      "label": "Ingenieria de Inteligencia Artificial",
+      "slug": "ingenieria-ia",
+      "specifics": [
+        {
+          "code": "200260303",
+          "name": "ALGEBRA LINEAL",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ÁLGEBRA Y GEOMETRÍA ANALÍTICA"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "INO106",
+          "name": "ÁLGEBRA Y GEOMETRÍA ANALÍTICA",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "200260401",
+          "name": "ALGORITMOS Y ESTRUCTURAS DE DATOS",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "PROGRAMACIÓN II"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260403",
+          "name": "ANÁLISIS NUMÉRICO",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "SERIES Y ECUACIONES DIFERENCIALES"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260501",
+          "name": "ARQUITECTURA DE COMPUTADORES",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "SISTEMAS DIGITALES"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "INO104",
+          "name": "CÁLCULO I",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO204",
+          "name": "CÁLCULO II",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [
+            "CÁLCULO I"
+          ],
+          "defaultCycle": 2
+        },
+        {
+          "code": "200260901",
+          "name": "CIBERSEGURIDAD",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "REDES Y COMUNICACIONES"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "INO103",
+          "name": "DESARROLLO PERSONAL Y LIDERAZGO",
+          "ht": 1,
+          "hp": 2,
+          "hl": 0,
+          "th": 3,
+          "cred": 2,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "200260404",
+          "name": "EMPRENDIMIENTO E INNOVACION",
+          "ht": 3,
+          "hp": 0,
+          "hl": 0,
+          "th": 3,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "PROGRAMACIÓN II"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260305",
+          "name": "ESTADÍSTICA Y PROBABILIDADES",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "CÁLCULO II"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "INO205",
+          "name": "FÍSICA I",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [
+            "CÁLCULO I"
+          ],
+          "defaultCycle": 2
+        },
+        {
+          "code": "200260304",
+          "name": "FISICA II",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "FISICA I"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "INO110",
+          "name": "INTRODUCCIÓN A LA COMPUTACIÓN",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO202",
+          "name": "INVESTIGACIÓN FORMATIVA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 2
+        },
+        {
+          "code": "200260502",
+          "name": "INVESTIGACIÓN OPERATIVA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ESTADÍSTICA Y PROBABILIDADES"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "200260202",
+          "name": "MATEMÁTICAS DISCRETAS",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ÁLGEBRA Y GEOMETRÍA ANALÍTICA"
+          ],
+          "defaultCycle": 2
+        },
+        {
+          "code": "INO107",
+          "name": "MEDIO AMBIENTE Y DESARROLLO SOSTENIBLE",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO102",
+          "name": "MÉTODOS DE ESTUDIO UNIVERSITARIO",
+          "ht": 1,
+          "hp": 2,
+          "hl": 0,
+          "th": 3,
+          "cred": 2,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "200260201",
+          "name": "PROGRAMACIÓN I",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [],
+          "defaultCycle": 2
+        },
+        {
+          "code": "200260301",
+          "name": "PROGRAMACIÓN II",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "PROGRAMACIÓN I"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "INO203",
+          "name": "REALIDAD NACIONAL Y MUNDIAL",
+          "ht": 1,
+          "hp": 2,
+          "hl": 0,
+          "th": 3,
+          "cred": 2,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 2
+        },
+        {
+          "code": "INO101",
+          "name": "REDACCIÓN Y TÉCNICAS DE COMUNICACIÓN EFECTIVA I",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "200260302",
+          "name": "SERIES Y ECUACIONES DIFERENCIALES",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "CÁLCULO II"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "200260402",
+          "name": "SISTEMAS DIGITALES",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "FISICA II"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260601",
+          "name": "SISTEMAS OPERATIVOS",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ARQUITECTURA DE COMPUTADORES"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "200261001",
+          "name": "TRANSFORMACION DIGITAL",
+          "ht": 3,
+          "hp": 0,
+          "hl": 0,
+          "th": 3,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "CIBERSEGURIDAD"
+          ],
+          "defaultCycle": 10
+        }
+      ],
+      "specialty": [
+        {
+          "code": "204260901",
+          "name": "AGENTES INTELIGENTES",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROCESAMIENTO DE LENGUAJE NATURAL"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "204260503",
+          "name": "ANÁLISIS Y DISEÑO DE ALGORITMOS",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "TEORIA DE LA COMPUTACIÓN"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "204260902",
+          "name": "APLICACIONES DE INTELIGENCIA ARTIFICIAL",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "204260603",
+          "name": "APRENDIZAJE AUTOMÁTICO",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "204260702",
+          "name": "APRENDIZAJE POR REFUERZO",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "REDES NEURONALES Y APRENDIZAJE PROFUNDO"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "204261002",
+          "name": "ASPECTOS LEGALES; ÉTICOS Y SOCIALES DE INTELIGENCIA ARTIFICIAL",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "APLICACIONES DE INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "204260701",
+          "name": "COMPUTACIÓN DE ALTO DESEMPEÑO",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "SISTEMAS OPERATIVOS"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "204260501",
+          "name": "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROGRAMACION II",
+            "PROCESOS ESTOCÁSTICOS"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "204261001",
+          "name": "GESTIÓN DE PROYECTOS DE INTELIGENCIA ARTIFICIAL",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INGENIERÍA DE SOFTWARE PARA INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "204260704",
+          "name": "INGENIERÍA DE SOFTWARE PARA INTELIGENCIA ARTIFICIAL",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "204260804",
+          "name": "INTELIGENCIA ARTIFICIAL DISTRIBUÍDA Y EFICIENTE",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "COMPUTACIÓN DE ALTO DESEMPEÑO"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "204260802",
+          "name": "INTELIGENCIA ARTIFICIAL GENERATIVA",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROCESAMIENTO DE LENGUAJE NATURAL"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "204260803",
+          "name": "INTERNET DE LAS COSAS",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "TEORÍA DE CONTROL"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "204260504",
+          "name": "LENGUAJES Y COMPILADORES",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "TEORIA DE LA COMPUTACIÓN"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "204260806",
+          "name": "NEUROCIENCIA Y LIDERAZGO EN TECNOLOGIAS DE LA INFORMACION",
+          "ht": 3,
+          "hp": 0,
+          "hl": 0,
+          "th": 3,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "REALIDAD NACIONAL Y MUNDIAL"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "204260602",
+          "name": "OPTIMIZACIÓN",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INVESTIGACIÓN OPERATIVA"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "204260904",
+          "name": "PRACTICA PREPROFESIONAL I",
+          "ht": 2,
+          "hp": 20,
+          "hl": 0,
+          "th": 22,
+          "cred": 12,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INTELIGENCIA ARTIFICIAL GENERATIVA"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "204261003",
+          "name": "PRACTICA PREPROFESIONAL II",
+          "ht": 2,
+          "hp": 20,
+          "hl": 0,
+          "th": 22,
+          "cred": 12,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PRACTICA PREPROFESIONAL I"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "204260706",
+          "name": "PROCESAMIENTO DE LENGUAJE NATURAL",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "REDES NEURONALES Y APRENDIZAJE PROFUNDO"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "204260402",
+          "name": "PROCESOS ESTOCÁSTICOS",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ESTADÍSTICA Y PROBABILIDADES"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "204260805",
+          "name": "PROYECTO FINAL DE CARRERA I",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "VISIÓN COMPUTACIONAL"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "204260905",
+          "name": "PROYECTO FINAL DE CARRERA II",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROYECTO FINAL DE CARRERA I"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "204261004",
+          "name": "PROYECTO FINAL DE CARRERA III",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROYECTO FINAL DE CARRERA II"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "204260605",
+          "name": "REDES NEURONALES Y APRENDIZAJE PROFUNDO",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "204260604",
+          "name": "REDES Y COMUNICACIONES",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ARQUITECTURA DE COMPUTADORES"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "204260601",
+          "name": "REPRESENTACIÓN DEL CONOCIMIENTO Y RAZONAMIENTO",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "204260801",
+          "name": "ROBÓTICA",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "TEORÍA DE CONTROL"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "204260502",
+          "name": "SISTEMAS DE BASE DE DATOS",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ALGORITMOS Y ESTRUCTURAS DE DATOS"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "204260703",
+          "name": "TEORÍA DE CONTROL",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ARQUITECTURA DE COMPUTADORES"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "204260401",
+          "name": "TEORÍA DE LA COMPUTACIÓN",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "MATEMATICAS DISCRETAS"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "204260705",
+          "name": "VISIÓN COMPUTACIONAL",
+          "ht": 2,
+          "hp": 0,
+          "hl": 2,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "REDES NEURONALES Y APRENDIZAJE PROFUNDO"
+          ],
+          "defaultCycle": 7
+        }
+      ]
+    },
+    "ciencia-datos": {
+      "label": "Ciencia de Datos",
+      "slug": "ciencia-datos",
+      "specifics": [
+        {
+          "code": "INO101",
+          "name": "REDACCIÓN Y TÉCNICAS DE COMUNICACIÓN EFECTIVA I",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO102",
+          "name": "MÉTODOS DE ESTUDIO UNIVERSITARIO",
+          "ht": 1,
+          "hp": 2,
+          "hl": 0,
+          "th": 3,
+          "cred": 2,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO103",
+          "name": "DESARROLLO PERSONAL Y LIDERAZGO",
+          "ht": 1,
+          "hp": 2,
+          "hl": 0,
+          "th": 3,
+          "cred": 2,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO104",
+          "name": "CÁLCULO I",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO106",
+          "name": "ÁLGEBRA Y GEOMETRÍA ANALÍTICA",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO107",
+          "name": "MEDIO AMBIENTE Y DESARROLLO SOSTENIBLE",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO110",
+          "name": "INTRODUCCIÓN A LA COMPUTACIÓN",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 1
+        },
+        {
+          "code": "INO202",
+          "name": "INVESTIGACIÓN FORMATIVA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 2
+        },
+        {
+          "code": "INO203",
+          "name": "REALIDAD NACIONAL Y MUNDIAL",
+          "ht": 1,
+          "hp": 2,
+          "hl": 0,
+          "th": 3,
+          "cred": 2,
+          "category": "EEGG",
+          "prereqs": [],
+          "defaultCycle": 2
+        },
+        {
+          "code": "INO204",
+          "name": "CÁLCULO II",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [
+            "CÁLCULO I"
+          ],
+          "defaultCycle": 2
+        },
+        {
+          "code": "INO205",
+          "name": "FÍSICA I",
+          "ht": 2,
+          "hp": 4,
+          "hl": 0,
+          "th": 6,
+          "cred": 4,
+          "category": "EEGG",
+          "prereqs": [
+            "CÁLCULO I"
+          ],
+          "defaultCycle": 2
+        },
+        {
+          "code": "200260201",
+          "name": "PROGRAMACIÓN I",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [],
+          "defaultCycle": 2
+        },
+        {
+          "code": "200260202",
+          "name": "MATEMÁTICAS DISCRETAS",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ÁLGEBRA Y GEOMETRÍA ANALÍTICA"
+          ],
+          "defaultCycle": 2
+        },
+        {
+          "code": "200260301",
+          "name": "PROGRAMACIÓN II",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "PROGRAMACIÓN I"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "200260302",
+          "name": "SERIES Y ECUACIONES DIFERENCIALES",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "CÁLCULO II"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "200260303",
+          "name": "ALGEBRA LINEAL",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ÁLGEBRA Y GEOMETRÍA ANALÍTICA"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "200260305",
+          "name": "ESTADÍSTICA Y PROBABILIDADES",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "CÁLCULO II"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "200260401",
+          "name": "ALGORITMOS Y ESTRUCTURAS DE DATOS",
+          "ht": 3,
+          "hp": 0,
+          "hl": 2,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "PROGRAMACIÓN II"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260402",
+          "name": "TEORÍA DE LA COMPUTACIÓN",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "PROGRAMACIÓN II"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260403",
+          "name": "ANÁLISIS NUMÉRICO",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "SERIES Y ECUACIONES DIFERENCIALES"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260404",
+          "name": "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "PROBABILIDADES Y MODELOS ALEATORIOS"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "200260501",
+          "name": "ANÁLISIS Y DISEÑO DE ALGORITMOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ALGORITMOS Y ESTRUCTURAS DE DATOS"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "200260502",
+          "name": "INVESTIGACIÓN OPERATIVA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ESTADÍSTICA Y PROBABILIDADES"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "200260503",
+          "name": "SISTEMAS DE BASE DE DATOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "ALGORITMOS Y ESTRUCTURAS DE DATOS"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "200260901",
+          "name": "NEUROCIENCIA Y LIDERAZGO EN TECNOLOGIAS DE LA INFORMACION",
+          "ht": 2,
+          "hp": 0,
+          "hl": 0,
+          "th": 2,
+          "cred": 2,
+          "category": "ESPECIFICO",
+          "prereqs": [
+            "TALLER DE PENSAMIENTO CRÍTICO"
+          ],
+          "defaultCycle": 9
+        }
+      ],
+      "specialty": [
+        {
+          "code": "205260301",
+          "name": "CALCULO III",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "CÁLCULO II"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "205260302",
+          "name": "INTRODUCCIÓN A LA CIENCIA DE DATOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INTRODUCCIÓN A LA ESTADÍSTICA Y PROBABILIDAD",
+            "PROGRAMACIÓN I"
+          ],
+          "defaultCycle": 3
+        },
+        {
+          "code": "205260401",
+          "name": "PROBABILIDADES Y MODELOS ALEATORIOS",
+          "ht": 3,
+          "hp": 2,
+          "hl": 0,
+          "th": 5,
+          "cred": 4,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INTRODUCCIÓN A LA ESTADÍSTICA Y PROBABILIDAD"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "205260402",
+          "name": "FUNDAMENTOS DE ANÁLISIS REAL",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "CÁLCULO III"
+          ],
+          "defaultCycle": 4
+        },
+        {
+          "code": "205260501",
+          "name": "INFERENCIA ESTADÍSTICA I (PARAMÉTRICAS)",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROBABILIDADES Y MODELOS ALEATORIOS"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "205260502",
+          "name": "APRENDIZAJE AUTOMÁTICO",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL",
+            "ALGEBRA LINEAL"
+          ],
+          "defaultCycle": 5
+        },
+        {
+          "code": "205260601",
+          "name": "INFERENCIA ESTADÍSTICA II (NO PARAMÉTRICAS)",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INFERENCIA ESTADÍSTICA I (PARAMÉTRICAS)"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "205260602",
+          "name": "DISEÑO Y ANÁLISIS DE EXPERIMENTOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INFERENCIA ESTADÍSTICA I (PARAMÉTRICAS)"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "205260603",
+          "name": "OPTIMIZACIÓN",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INVESTIGACIÓN OPERATIVA"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "205260604",
+          "name": "ARQUITECTURA DE COMPUTADORAS Y SISTEMAS OPERATIVOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "TEORÍA DE LA COMPUTACIÓN"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "205260605",
+          "name": "ANALÍTICA AVANZADA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "APRENDIZAJE AUTOMÁTICO"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "205260606",
+          "name": "APRENDIZAJE PROFUNDO",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "APRENDIZAJE AUTOMÁTICO"
+          ],
+          "defaultCycle": 6
+        },
+        {
+          "code": "205260701",
+          "name": "ESTADÍSTICA BAYESIANA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INFERENCIA ESTADÍSTICA II (NO PARAMÉTRICAS)"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "205260702",
+          "name": "ESTADÍSTICA MULTIVARIADA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INFERENCIA ESTADÍSTICA II (NO PARAMÉTRICAS)"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "205260703",
+          "name": "COMPUTACIÓN DE ALTO DESEMPEÑO",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ARQUITECTURA DE COMPUTADORAS Y SISTEMAS OPERATIVOS"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "205260704",
+          "name": "ARQUITECTURA DE DATOS E IOT",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ANALÍTICA AVANZADA"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "205260705",
+          "name": "DATA STORYTELLING",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ANALÍTICA AVANZADA"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "205260706",
+          "name": "PROCESAMIENTO DE LENGUAJE NATURAL",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "APRENDIZAJE PROFUNDO"
+          ],
+          "defaultCycle": 7
+        },
+        {
+          "code": "205260801",
+          "name": "PROYECTO DE FINAL CARRERA I",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROCESAMIENTO DE LENGUAJE NATURAL"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "205260801",
+          "name": "INGENIERÍA DE DATOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "COMPUTACION EN NUVE Y DISTRIBUÍDA"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "205260802",
+          "name": "INGENIERÍA DE SOFTWARE PARA INTELIGENCIA ARTIFICIAL",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "205260803",
+          "name": "SERIES DE TIEMPO",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "ESTADÍSTICA BAYESIANA"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "205260804",
+          "name": "TALLER DE PENSAMIENTO CRÍTICO",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INVESTIGACIÓN FORMATIVA"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "205260805",
+          "name": "VISIÓN COMPUTACIONAL",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "APRENDIZAJE PROFUNDO"
+          ],
+          "defaultCycle": 8
+        },
+        {
+          "code": "205260901",
+          "name": "SIMULACIÓN ESTADÍSTICA",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INFERENCIA ESTADÍSTICA II (NO PARAMÉTRICAS)"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "205260902",
+          "name": "PRACTICA PREPROFESIONAL I",
+          "ht": 2,
+          "hp": 20,
+          "hl": 0,
+          "th": 22,
+          "cred": 12,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "INGENIERÍA DE DATOS"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "205260903",
+          "name": "PROYECTO FINAL DE CARRERA II",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROYECTO DE FINAL CARRERA I"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "205260904",
+          "name": "APRENDIZAJE POR REFUERZO",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "APRENDIZAJE PROFUNDO"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "205260905",
+          "name": "TALLER DE APLICACIONES DE CIENCIA DE DATOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "VISIÓN COMPUTACIONAL"
+          ],
+          "defaultCycle": 9
+        },
+        {
+          "code": "205261001",
+          "name": "PRACTICA PREPROFESIONAL II",
+          "ht": 2,
+          "hp": 20,
+          "hl": 0,
+          "th": 22,
+          "cred": 12,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PRACTICA PRE PROFESIONAL I"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "205261002",
+          "name": "PROYECTO FINAL DE CARRERA III",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "PROYECTO FINAL DE CARRERA II"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "205261003",
+          "name": "TALLER DE INNOVACIÓN CON CIENCIA DE DATOS",
+          "ht": 2,
+          "hp": 2,
+          "hl": 0,
+          "th": 4,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "VISIÓN COMPUTACIONAL"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "205261004",
+          "name": "GOBERNANZA Y POLÍTICA DE DATOS",
+          "ht": 3,
+          "hp": 0,
+          "hl": 0,
+          "th": 3,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "TALLER DE APLICACIONES DE CIENCIA DE DATOS"
+          ],
+          "defaultCycle": 10
+        },
+        {
+          "code": "205261005",
+          "name": "ASPECTOS LEGALES, ÉTICOS Y SOCIALES DE LA INTELIGENCIA ARTIFICIAL",
+          "ht": 3,
+          "hp": 0,
+          "hl": 0,
+          "th": 3,
+          "cred": 3,
+          "category": "ESPECIALIDAD",
+          "prereqs": [
+            "TALLER DE APLICACIONES DE CIENCIA DE DATOS"
+          ],
+          "defaultCycle": 10
+        }
+      ]
+    }
+  }
+}
