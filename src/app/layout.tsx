@@ -36,15 +36,7 @@ export const metadata: Metadata = {
     "constructor curricular",
   ],
   authors: [{ name: "FISI UNMSM" }],
-  icons: {
-    icon: [
-      { url: "/icon.png", type: "image/png", sizes: "32x32" },
-      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
-      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-    shortcut: ["/favicon.ico"],
-  },
+  // icons: Next.js auto-detecta src/app/icon.png + apple-icon.png
   openGraph: {
     type: "website",
     locale: "es_PE",

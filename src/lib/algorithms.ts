@@ -1,5 +1,5 @@
 import type { Course, Placement } from "./types";
-import { findCourseByName } from "./utils";
+import { EEGG_MAX_CYCLE, findCourseByName } from "./utils";
 
 export interface CycleAnalysis {
   cycle: number;
@@ -39,7 +39,8 @@ export function autoOrganize(courses: Course[]): Placement {
         const placedAt = placement[prereq.code];
         return placedAt !== undefined && placedAt < cycle;
       });
-      if (ready && cycleCredits + course.cred <= CREDIT_TARGETS.heavy) {
+      const eeggViolation = course.category === "EEGG" && cycle > EEGG_MAX_CYCLE;
+      if (ready && !eeggViolation && cycleCredits + course.cred <= CREDIT_TARGETS.heavy) {
         placement[code] = cycle;
         placedThisRound.push(code);
         cycleCredits += course.cred;
@@ -56,7 +57,8 @@ export function autoOrganize(courses: Course[]): Placement {
           const placedAt = placement[prereq.code];
           return placedAt !== undefined && placedAt < cycle;
         });
-        if (ready) {
+        const eeggViolation = course.category === "EEGG" && cycle > EEGG_MAX_CYCLE;
+        if (ready && !eeggViolation) {
           placement[code] = cycle;
           placedThisRound.push(code);
         }
@@ -135,6 +137,13 @@ export function detectIssues(
   for (const course of courses) {
     if (placement[course.code] === undefined) continue;
     const myCycle = placement[course.code];
+    if (course.category === "EEGG" && myCycle > EEGG_MAX_CYCLE) {
+      warnings.push({
+        level: "error",
+        message: `${course.name} es EEGG y esta en ciclo ${myCycle}: solo puede ir en ciclos I-II (requisito para facultad)`,
+        courseCode: course.code,
+      });
+    }
     for (const prereqName of course.prereqs) {
       const prereq = findCourseByName(prereqName, courses);
       if (!prereq) {

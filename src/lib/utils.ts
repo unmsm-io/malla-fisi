@@ -20,10 +20,13 @@ export function findCourseByName(name: string, all: Course[]): Course | null {
   return all.find((c) => normalizeName(c.name) === target) ?? null;
 }
 
+export const EEGG_MAX_CYCLE = 2;
+
 export interface ValidationResult {
   ok: boolean;
   missing: { prereqName: string; reason: "not-placed" | "same-or-later-cycle" }[];
   conflicts: { dependentName: string; dependentCycle: number }[];
+  categoryViolation?: { reason: string };
 }
 
 export function validatePlacement(
@@ -58,7 +61,22 @@ export function validatePlacement(
     }
   }
 
-  return { ok: missing.length === 0 && conflicts.length === 0, missing, conflicts };
+  let categoryViolation: ValidationResult["categoryViolation"];
+  if (course.category === "EEGG" && targetCycle > EEGG_MAX_CYCLE) {
+    categoryViolation = {
+      reason: `Cursos EEGG solo pueden ir en ciclos I-${ROMAN[EEGG_MAX_CYCLE - 1]} (requisito para entrar a facultad)`,
+    };
+  }
+
+  return {
+    ok:
+      missing.length === 0 &&
+      conflicts.length === 0 &&
+      categoryViolation === undefined,
+    missing,
+    conflicts,
+    categoryViolation,
+  };
 }
 
 export const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];

@@ -4,6 +4,7 @@ import path from "node:path";
 
 const root = path.join(import.meta.dir, "..");
 const publicDir = path.join(root, "public");
+const appDir = path.join(root, "src", "app");
 const escudoPath = path.join(publicDir, "escudo-unmsm.png");
 
 const COLORS = {
@@ -23,53 +24,70 @@ async function loadEscudo(size: number): Promise<Buffer> {
     .toBuffer();
 }
 
-async function generateMonogramSvg(size: number, padding: number): Promise<string> {
-  const fontSize = Math.round(size * 0.5);
+async function generateEscudoIcon(size: number): Promise<Buffer> {
+  const padding = Math.round(size * 0.08);
+  const inner = size - padding * 2;
   const r = Math.round(size * 0.18);
-  return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  const stroke = Math.max(1, size / 24);
+
+  const escudoResized = await sharp(escudoPath)
+    .resize(inner - 4, inner - 4, {
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .modulate({ saturation: 0.2, brightness: 1.6 })
+    .png()
+    .toBuffer();
+
+  const bg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="${COLORS.bg}"/>
       <stop offset="100%" stop-color="${COLORS.bgAcademic}"/>
     </linearGradient>
   </defs>
-  <rect x="${padding}" y="${padding}" width="${size - padding * 2}" height="${size - padding * 2}" rx="${r}" fill="url(#bg)" stroke="${COLORS.gold}" stroke-width="${Math.max(1, size / 32)}"/>
-  <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle"
-        font-family="Georgia, 'Times New Roman', serif"
-        font-weight="700" font-size="${fontSize}" fill="${COLORS.gold}"
-        letter-spacing="-2">MF</text>
+  <rect x="${padding / 2}" y="${padding / 2}" width="${size - padding}" height="${size - padding}" rx="${r}" fill="url(#bg)" stroke="${COLORS.gold}" stroke-width="${stroke}"/>
 </svg>`;
+
+  return sharp(Buffer.from(bg))
+    .composite([
+      {
+        input: escudoResized,
+        top: padding + 2,
+        left: padding + 2,
+      },
+    ])
+    .png()
+    .toBuffer();
 }
 
 async function generateFavicon() {
-  console.log("Generating favicon set...");
-  const sizes = [16, 32, 48, 180];
+  console.log("Generating favicon set (escudo UNMSM)...");
+  const sizes = [16, 32, 48, 180, 512];
 
-  const buffers = await Promise.all(
-    sizes.map(async (size) => {
-      const svg = await generateMonogramSvg(size, Math.round(size * 0.06));
-      const buf = await sharp(Buffer.from(svg)).resize(size, size).png().toBuffer();
-      return { size, buf };
-    }),
-  );
+  for (const size of sizes) {
+    const buf = await generateEscudoIcon(size);
 
-  for (const { size, buf } of buffers) {
     if (size === 180) {
       await writeFile(path.join(publicDir, "apple-touch-icon.png"), buf);
-      console.log(`  -> apple-touch-icon.png (${size}x${size})`);
+      await writeFile(path.join(appDir, "apple-icon.png"), buf);
+      console.log(`  -> apple-touch-icon + src/app/apple-icon.png (${size}x${size})`);
     } else if (size === 32) {
       await writeFile(path.join(publicDir, "favicon-32x32.png"), buf);
-      await writeFile(path.join(publicDir, "icon.png"), buf);
-      console.log(`  -> favicon-32x32.png + icon.png (${size}x${size})`);
+      await writeFile(path.join(appDir, "icon.png"), buf);
+      console.log(`  -> src/app/icon.png + public/favicon-32x32.png (${size}x${size})`);
     } else if (size === 16) {
       await writeFile(path.join(publicDir, "favicon-16x16.png"), buf);
       console.log(`  -> favicon-16x16.png`);
+    } else if (size === 512) {
+      await writeFile(path.join(publicDir, "icon-512.png"), buf);
+      console.log(`  -> icon-512.png (PWA)`);
     }
   }
 
-  const ico32 = buffers.find((b) => b.size === 32)!.buf;
-  await writeFile(path.join(publicDir, "favicon.ico"), ico32);
+  const ico = await generateEscudoIcon(32);
+  await writeFile(path.join(publicDir, "favicon.ico"), ico);
   console.log("  -> favicon.ico");
 }
 

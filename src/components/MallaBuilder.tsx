@@ -24,6 +24,7 @@ import {
   Wand2,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -312,6 +313,9 @@ export function MallaBuilder({ data }: Props) {
       const result = validatePlacement(course, targetCycle, placement, allCourses);
       if (!result.ok) {
         const lines: string[] = [];
+        if (result.categoryViolation) {
+          lines.push(result.categoryViolation.reason);
+        }
         if (result.missing.length > 0) {
           lines.push("Prerrequisitos faltantes:");
           for (const m of result.missing) {
@@ -410,10 +414,17 @@ export function MallaBuilder({ data }: Props) {
           <div className="flex items-center gap-2 px-3 py-2 lg:gap-2.5 lg:px-4">
             <div className="flex shrink-0 items-center gap-2">
               <div
-                className="flex h-8 w-8 items-center justify-center rounded-md border bg-accent font-serif text-[13px] font-bold tracking-tighter text-gold"
+                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-md border bg-accent"
                 style={{ borderColor: "var(--gold)" }}
               >
-                MF
+                <Image
+                  src="/escudo-unmsm.png"
+                  alt="Escudo UNMSM"
+                  width={36}
+                  height={36}
+                  priority
+                  className="h-full w-full object-cover"
+                />
               </div>
               <div className="hidden leading-tight md:block">
                 <h1 className="font-serif text-[13px] font-bold tracking-tight">
