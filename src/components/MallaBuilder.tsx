@@ -32,7 +32,9 @@ import {
   getChain,
 } from "@/lib/algorithms";
 import { exportToExcel, exportToPdf } from "@/lib/export";
-import { applyProposal, proposalsForWarning, type Proposal } from "@/lib/proposals";
+import { applyProposal, type Proposal } from "@/lib/proposals";
+import { solveIssues } from "@/lib/solver";
+import type { Warning } from "@/lib/algorithms";
 import { loadState, saveState } from "@/lib/storage";
 import type { Course, CoursesData, Placement } from "@/lib/types";
 import { ROMAN, cn, validatePlacement } from "@/lib/utils";
@@ -76,7 +78,14 @@ export function MallaBuilder({ data }: Props) {
   const [showCompare, setShowCompare] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [history, setHistory] = useState<Placement[]>([]);
-  const [fixSummary, setFixSummary] = useState<{ proposals: Proposal[]; before: Placement } | null>(null);
+  const [fixPreview, setFixPreview] = useState<{
+    proposals: Proposal[];
+    finalPlacement: Placement;
+    remainingErrors: Warning[];
+    iterations: number;
+    reason: "converged" | "max-iterations" | "no-progress";
+    beforeWarnings: number;
+  } | null>(null);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
 
@@ -143,33 +152,31 @@ export function MallaBuilder({ data }: Props) {
     });
   }
 
-  function handleApplyAllFixes() {
-    const before = placement;
-    const recommendedFixes = warnings
-      .map((w) => proposalsForWarning(w, { courses: allCourses, placement }))
-      .map((arr) => arr.find((p) => p.recommended) ?? arr[0])
-      .filter((p): p is Proposal => Boolean(p));
-    if (recommendedFixes.length === 0) {
-      toast.info("Sin fixes automaticos disponibles");
+  function handleOpenFixPreview() {
+    const result = solveIssues(allCourses, placement);
+    if (result.appliedProposals.length === 0) {
+      toast.info(
+        result.remainingErrors.length > 0
+          ? "Ningun fix automatico mejora la malla. Ajusta manualmente."
+          : "Sin issues que arreglar",
+      );
       return;
     }
-    let next = placement;
-    const applied: Proposal[] = [];
-    for (const p of recommendedFixes) {
-      const test = applyProposal(next, p.actions);
-      next = test;
-      applied.push(p);
-    }
-    commitPlacement(next);
-    setFixSummary({ proposals: applied, before });
+    setFixPreview({
+      proposals: result.appliedProposals,
+      finalPlacement: result.finalPlacement,
+      remainingErrors: result.remainingErrors,
+      iterations: result.iterations,
+      reason: result.reason,
+      beforeWarnings: warnings.length,
+    });
   }
 
-  function handleRevertFixSummary() {
-    if (!fixSummary) return;
-    setPlacement(fixSummary.before);
-    setHistory((h) => h.slice(0, -1));
-    toast.info("Cambios revertidos");
-    setFixSummary(null);
+  function handleConfirmFixPreview() {
+    if (!fixPreview) return;
+    commitPlacement(fixPreview.finalPlacement);
+    toast.success(`${fixPreview.proposals.length} fix(es) aplicados`);
+    setFixPreview(null);
   }
 
   const sensors = useSensors(
@@ -404,9 +411,9 @@ export function MallaBuilder({ data }: Props) {
               </button>
               <button
                 type="button"
-                onClick={handleApplyAllFixes}
+                onClick={handleOpenFixPreview}
                 disabled={warnings.length === 0}
-                title="Aplica el fix recomendado de cada warning"
+                title="Genera un plan de fixes y muestra preview antes de aplicar"
                 className={cn(
                   "flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-40",
                   warnings.length > 0
@@ -568,62 +575,72 @@ export function MallaBuilder({ data }: Props) {
         />
       )}
 
-      {fixSummary && (
-        <FixSummaryDialog
-          summary={fixSummary}
-          onRevert={handleRevertFixSummary}
-          onClose={() => setFixSummary(null)}
+      {fixPreview && (
+        <FixPreviewDialog
+          preview={fixPreview}
+          onConfirm={handleConfirmFixPreview}
+          onCancel={() => setFixPreview(null)}
         />
       )}
     </DndContext>
   );
 }
 
-function FixSummaryDialog({
-  summary,
-  onRevert,
-  onClose,
+function FixPreviewDialog({
+  preview,
+  onConfirm,
+  onCancel,
 }: {
-  summary: { proposals: Proposal[]; before: Placement };
-  onRevert: () => void;
-  onClose: () => void;
+  preview: {
+    proposals: Proposal[];
+    remainingErrors: Warning[];
+    iterations: number;
+    reason: "converged" | "max-iterations" | "no-progress";
+    beforeWarnings: number;
+  };
+  onConfirm: () => void;
+  onCancel: () => void;
 }) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCancel();
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onConfirm();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onCancel, onConfirm]);
+
+  const remaining = preview.remainingErrors.length;
+  const reasonLabel = {
+    converged: "Solucion completa encontrada",
+    "max-iterations": "Limite de iteraciones alcanzado",
+    "no-progress": "No se encontraron mas mejoras posibles",
+  }[preview.reason];
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={onCancel}
     >
       <div
-        className="flex max-h-[80vh] w-full max-w-md flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
+        className="flex max-h-[85vh] w-full max-w-lg flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/15 text-violet-500">
-              <Wand2 size={16} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-500">
+              <Wand2 size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-bold">
-                {summary.proposals.length} fix
-                {summary.proposals.length !== 1 ? "es" : ""} aplicado
-                {summary.proposals.length !== 1 ? "s" : ""}
-              </h3>
+              <h3 className="text-sm font-bold">Plan de correcciones</h3>
               <p className="text-[11px] text-muted-foreground">
-                Resumen de cambios automaticos
+                Preview · revisa antes de aplicar
               </p>
             </div>
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={onCancel}
             aria-label="Cerrar"
             className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground"
           >
@@ -631,8 +648,27 @@ function FixSummaryDialog({
           </button>
         </div>
 
+        <div className="grid grid-cols-3 gap-2">
+          <BigStat label="Cambios" value={String(preview.proposals.length)} tone="violet" />
+          <BigStat
+            label="Issues antes"
+            value={String(preview.beforeWarnings)}
+            tone="amber"
+          />
+          <BigStat
+            label="Errors restantes"
+            value={String(remaining)}
+            tone={remaining === 0 ? "emerald" : "rose"}
+          />
+        </div>
+
+        <div className="rounded-md border border-border bg-input/10 px-2 py-1.5 text-[10px] text-muted-foreground">
+          {reasonLabel} · {preview.iterations} iteracion
+          {preview.iterations !== 1 ? "es" : ""}
+        </div>
+
         <div className="flex flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-input/20 p-2">
-          {summary.proposals.map((p, i) => (
+          {preview.proposals.map((p, i) => (
             <div key={i} className="flex items-start gap-2 rounded p-1.5 text-xs">
               <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-violet-500/15 font-mono text-[9px] font-bold text-violet-600 dark:text-violet-400">
                 {i + 1}
@@ -647,22 +683,73 @@ function FixSummaryDialog({
           ))}
         </div>
 
+        {remaining > 0 && (
+          <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-2 text-[11px] leading-tight">
+            <div className="mb-1 font-semibold text-rose-600 dark:text-rose-400">
+              {remaining} error{remaining !== 1 ? "es" : ""} no resueltos:
+            </div>
+            <ul className="ml-4 list-disc text-muted-foreground">
+              {preview.remainingErrors.slice(0, 4).map((e, i) => (
+                <li key={i} className="leading-snug">
+                  {e.message}
+                </li>
+              ))}
+              {preview.remainingErrors.length > 4 && (
+                <li className="italic">
+                  +{preview.remainingErrors.length - 4} mas
+                </li>
+              )}
+            </ul>
+            <div className="mt-1.5 text-[10px] italic text-muted-foreground">
+              Requieren ajuste manual
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between gap-2 pt-1">
           <button
             type="button"
-            onClick={onRevert}
-            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-accent dark:text-rose-400"
+            onClick={onCancel}
+            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
           >
-            Revertir todos
+            Cancelar
           </button>
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-md bg-foreground px-3 py-1.5 text-xs font-semibold text-background hover:opacity-90"
+            onClick={onConfirm}
+            className="flex items-center gap-1.5 rounded-md bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
-            OK, mantener
+            <Wand2 size={11} /> Aplicar {preview.proposals.length} cambio
+            {preview.proposals.length !== 1 ? "s" : ""}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function BigStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "violet" | "amber" | "emerald" | "rose";
+}) {
+  const toneStyles = {
+    violet: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    amber: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    emerald: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    rose: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  };
+  return (
+    <div className={cn("rounded-md p-2 text-center", toneStyles[tone])}>
+      <div className="text-[9px] font-medium uppercase tracking-wider opacity-70">
+        {label}
+      </div>
+      <div className="mt-0.5 font-mono text-base font-bold tabular-nums">
+        {value}
       </div>
     </div>
   );
