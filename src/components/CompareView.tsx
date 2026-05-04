@@ -557,13 +557,20 @@ function ColumnHeader({
           style={{
             position: "fixed",
             left: coords.left,
-            top: coords.top,
+            top: coords.top + 4,
             transform: "translateX(-50%)",
             zIndex: 100,
+            animation: "tooltipIn 120ms ease-out",
           }}
-          className="pointer-events-none w-64 rounded-md border border-border bg-card px-2.5 py-2 text-[11px] font-normal normal-case leading-snug tracking-normal text-foreground shadow-xl"
+          className="pointer-events-none"
         >
-          {tooltip}
+          <span
+            style={{ background: "var(--card)" }}
+            className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-l border-t border-border"
+          />
+          <span className="relative block w-72 rounded-lg border border-border bg-card px-3 py-2.5 text-[12px] font-normal normal-case leading-relaxed tracking-normal text-foreground shadow-2xl">
+            {tooltip}
+          </span>
         </span>
       )}
     </span>
