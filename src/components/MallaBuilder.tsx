@@ -18,6 +18,7 @@ import {
   Network,
   RotateCcw,
   Sparkles,
+  Undo2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ import {
   getChain,
 } from "@/lib/algorithms";
 import { exportToExcel, exportToPdf } from "@/lib/export";
+import { applyProposal, type Proposal } from "@/lib/proposals";
 import { loadState, saveState } from "@/lib/storage";
 import type { Course, CoursesData, Placement } from "@/lib/types";
 import { ROMAN, cn, validatePlacement } from "@/lib/utils";
@@ -67,9 +69,11 @@ export function MallaBuilder({ data }: Props) {
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [editingCode, setEditingCode] = useState<string | null>(null);
   const [hoveredCode, setHoveredCode] = useState<string | null>(null);
+  const [proposalHoverCodes, setProposalHoverCodes] = useState<string[] | null>(null);
   const [showEdges, setShowEdges] = useState(true);
   const [showCompare, setShowCompare] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [history, setHistory] = useState<Placement[]>([]);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
 
@@ -89,6 +93,44 @@ export function MallaBuilder({ data }: Props) {
     if (!hydrated) return;
     saveState(careerSlug, { placement, specialtyOverrides });
   }, [careerSlug, placement, specialtyOverrides, hydrated]);
+
+  const commitPlacement = useCallback(
+    (next: Placement | ((prev: Placement) => Placement)) => {
+      setPlacement((prev) => {
+        const resolved = typeof next === "function" ? (next as (p: Placement) => Placement)(prev) : next;
+        setHistory((h) => [...h.slice(-19), prev]);
+        return resolved;
+      });
+    },
+    [],
+  );
+
+  const handleUndo = useCallback(() => {
+    setHistory((h) => {
+      if (h.length === 0) return h;
+      const last = h[h.length - 1];
+      setPlacement(last);
+      toast.info("Deshecho");
+      return h.slice(0, -1);
+    });
+  }, []);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const meta = e.metaKey || e.ctrlKey;
+      if (meta && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handleUndo]);
+
+  function handleApplyProposal(p: Proposal) {
+    commitPlacement((prev) => applyProposal(prev, p.actions));
+    toast.success(p.label);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -126,13 +168,14 @@ export function MallaBuilder({ data }: Props) {
 
   const highlightFor = useCallback(
     (code: string): CardHighlight => {
+      if (proposalHoverCodes && proposalHoverCodes.includes(code)) return "self";
       if (!hoveredCode) return "none";
       if (code === hoveredCode) return "self";
       if (chain.ancestors.has(code)) return "ancestor";
       if (chain.descendants.has(code)) return "descendant";
       return "none";
     },
-    [hoveredCode, chain],
+    [hoveredCode, chain, proposalHoverCodes],
   );
 
   function coursesInCycle(cycle: number): Course[] {
@@ -178,12 +221,12 @@ export function MallaBuilder({ data }: Props) {
               `${course.name} regresado, pero ${placedDescendants.length} descendiente(s) ahora estan invalidos`,
             );
           }
-          setPlacement(next);
+          commitPlacement(next);
           return;
         }
         const next = { ...placement };
         delete next[course.code];
-        setPlacement(next);
+        commitPlacement(next);
         toast.info(`${course.name} regresado al panel`);
       }
       return;
@@ -215,14 +258,14 @@ export function MallaBuilder({ data }: Props) {
         toast.error(lines.join("\n"), { duration: 7000 });
         return;
       }
-      setPlacement((prev) => ({ ...prev, [course.code]: targetCycle }));
+      commitPlacement((prev) => ({ ...prev, [course.code]: targetCycle }));
       toast.success(`${course.name} → Ciclo ${ROMAN[targetCycle - 1]}`);
     }
   }
 
   function handleAutoOrganize() {
     const auto = autoOrganize(allCourses);
-    setPlacement(auto);
+    commitPlacement(auto);
     const placedN = Object.keys(auto).length;
     if (placedN < allCourses.length) {
       toast.warning(
@@ -235,13 +278,13 @@ export function MallaBuilder({ data }: Props) {
 
   function handleLoadDefault() {
     const def = defaultPlacementFromExcel(allCourses);
-    setPlacement(def);
+    commitPlacement(def);
     toast.success(`Plan oficial cargado (${Object.keys(def).length} cursos)`);
   }
 
   function handleReset() {
     if (Object.keys(placement).length === 0) return;
-    setPlacement({});
+    commitPlacement({});
     toast.info("Malla limpiada");
   }
 
@@ -342,6 +385,15 @@ export function MallaBuilder({ data }: Props) {
               </button>
               <button
                 type="button"
+                onClick={handleUndo}
+                disabled={history.length === 0}
+                title="Deshacer (Cmd+Z)"
+                className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Undo2 size={11} /> Undo
+              </button>
+              <button
+                type="button"
                 onClick={handleReset}
                 disabled={placedCount === 0}
                 title="Vaciar la malla"
@@ -393,7 +445,13 @@ export function MallaBuilder({ data }: Props) {
               accent="violet"
               totalCount={totalSpecialty}
             />
-            <IssuesPanel warnings={warnings} />
+            <IssuesPanel
+              warnings={warnings}
+              courses={allCourses}
+              placement={placement}
+              onApplyProposal={handleApplyProposal}
+              onHoverProposal={setProposalHoverCodes}
+            />
           </aside>
 
           <main
@@ -442,7 +500,12 @@ export function MallaBuilder({ data }: Props) {
       />
 
       {showCompare && (
-        <CompareView data={data} onClose={() => setShowCompare(false)} />
+        <CompareView
+          data={data}
+          currentSlug={careerSlug}
+          currentPlacement={placement}
+          onClose={() => setShowCompare(false)}
+        />
       )}
     </DndContext>
   );
@@ -468,9 +531,18 @@ function HintBar() {
       <span className="opacity-40">·</span>
       <span>
         <kbd className="rounded border border-border bg-card px-1 font-mono text-[9px]">
+          Cmd+Z
+        </kbd>{" "}
+        deshacer ·{" "}
+        <kbd className="rounded border border-border bg-card px-1 font-mono text-[9px]">
           Esc
         </kbd>{" "}
-        cierra modales · Tu malla se guarda automaticamente
+        cierra · Auto-guardado
+      </span>
+      <span className="opacity-40">·</span>
+      <span>
+        <Sparkles className="inline" size={9} /> Click warning →
+        propuestas auto-fix
       </span>
     </div>
   );
