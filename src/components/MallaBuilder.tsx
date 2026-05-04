@@ -469,7 +469,19 @@ export function MallaBuilder({ data }: Props) {
               </button>
               <button
                 type="button"
-                onClick={() => exportToPdf(career.label)}
+                onClick={async () => {
+                  const id = toast.loading("Generando PDF...");
+                  try {
+                    await exportToPdf(career.label);
+                    toast.success("PDF descargado", { id });
+                  } catch (err) {
+                    console.error(err);
+                    toast.error(
+                      `Error generando PDF: ${err instanceof Error ? err.message : "desconocido"}`,
+                      { id },
+                    );
+                  }
+                }}
                 title="Exportar malla a PDF"
                 className="flex items-center gap-1 rounded-md bg-rose-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-700"
               >

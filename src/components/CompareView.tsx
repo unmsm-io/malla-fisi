@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowDown, ArrowRight, ArrowUp, Equal, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  Equal,
+  Info,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { autoOrganize, defaultPlacementFromExcel } from "@/lib/algorithms";
 import type { Course, CoursesData, Placement } from "@/lib/types";
@@ -65,6 +72,7 @@ export function CompareView({
   const [leftSource, setLeftSource] = useState<Source>("current");
   const [rightSource, setRightSource] = useState<Source>("default");
   const [filter, setFilter] = useState<Status | "all">("all");
+  const [showHelp, setShowHelp] = useState(true);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -150,15 +158,62 @@ export function CompareView({
             Curso por curso · diferencias en ciclos
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-        >
-          <X size={16} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowHelp((v) => !v)}
+            className="flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium hover:bg-accent"
+          >
+            <Info size={11} /> {showHelp ? "Ocultar guia" : "Como leer"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </header>
+
+      {showHelp && (
+        <div className="border-b border-border bg-sky-500/5 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-sky-500/15 text-sky-500">
+              <Info size={13} />
+            </div>
+            <div className="flex-1 text-[12px] leading-relaxed">
+              <p className="mb-1.5 font-semibold">
+                Para que sirve esta vista
+              </p>
+              <p className="text-muted-foreground">
+                Cada fila es <span className="font-medium text-foreground">un curso</span>.
+                Las dos columnas centrales muestran en que ciclo aparece en cada
+                carrera (un cuadrito iluminado entre 10 ciclos posibles). La
+                columna del medio resume la diferencia con un numero{" "}
+                <span className="rounded bg-amber-500/15 px-1 font-mono text-amber-700 dark:text-amber-300">
+                  +N / -N
+                </span>{" "}
+                indicando cuantos ciclos se mueve entre carreras, o un{" "}
+                <Equal size={11} className="inline text-emerald-500" /> si esta
+                igual, o una flecha si solo aparece en una sola carrera.
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-[11px]">
+                <LegendRow color="bg-emerald-500" label="Mismo ciclo en ambas carreras" />
+                <LegendRow color="bg-amber-500" label="Diferente ciclo: numero indica el delta" />
+                <LegendRow color="bg-sky-500" label="Solo aparece en la carrera izquierda" />
+                <LegendRow color="bg-violet-500" label="Solo aparece en la carrera derecha" />
+              </div>
+              <p className="mt-2 text-[11px] italic text-muted-foreground">
+                Util para: detectar si un curso compartido (ej. Programacion II)
+                debe ir en distinto ciclo segun la carrera, o ver que cursos son
+                exclusivos de cada plan.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/30 px-4 py-2">
         <Selector
@@ -222,10 +277,23 @@ export function CompareView({
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         <div className="grid grid-cols-[1fr_240px_60px_240px] items-center gap-2 border-b border-border pb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          <span>Curso</span>
-          <span className="truncate">{left.label}</span>
-          <span className="text-center">Diff</span>
-          <span className="truncate">{right.label}</span>
+          <ColumnHeader
+            label="Curso"
+            tooltip="Nombre del curso. El punto a la izquierda indica categoria: amarillo=EEGG, azul=Especifico, violeta=Especialidad."
+          />
+          <ColumnHeader
+            label={left.label}
+            tooltip={`Barra de 10 ciclos. El cuadro iluminado es el ciclo donde el curso aparece en ${left.label}. "sin colocar" = no esta en ningun ciclo todavia.`}
+          />
+          <ColumnHeader
+            label="Diff"
+            center
+            tooltip={'Resumen visual: = igual ciclo. +N / -N indica cuantos ciclos despues/antes esta en la derecha respecto a la izquierda. Flecha = solo aparece en un lado.'}
+          />
+          <ColumnHeader
+            label={right.label}
+            tooltip={`Barra de 10 ciclos. El cuadro iluminado es el ciclo donde el curso aparece en ${right.label}. "no aplica" = el curso solo existe en la otra carrera.`}
+          />
         </div>
         <div className="divide-y divide-border/50">
           {filtered.map((row) => (
@@ -439,5 +507,44 @@ function FilterChip({
       <span>{label}</span>
       <span className="font-mono tabular-nums">{value}</span>
     </button>
+  );
+}
+
+function ColumnHeader({
+  label,
+  tooltip,
+  center,
+}: {
+  label: string;
+  tooltip: string;
+  center?: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "group relative inline-flex items-center gap-1 truncate",
+        center && "justify-center",
+      )}
+    >
+      <span className="truncate">{label}</span>
+      <span className="relative inline-flex">
+        <Info
+          size={10}
+          className="cursor-help text-muted-foreground/60 transition hover:text-foreground"
+        />
+        <span className="pointer-events-none invisible absolute left-1/2 top-5 z-10 w-56 -translate-x-1/2 rounded-md border border-border bg-popover bg-card px-2 py-1.5 text-[10px] font-normal normal-case leading-snug tracking-normal text-foreground opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
+          {tooltip}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+function LegendRow({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", color)} />
+      <span className="text-muted-foreground">{label}</span>
+    </span>
   );
 }

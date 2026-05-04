@@ -51,28 +51,58 @@ export async function exportToExcel(
 }
 
 export async function exportToPdf(careerLabel: string) {
-  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-    import("html2canvas"),
+  const [{ domToCanvas }, { default: jsPDF }] = await Promise.all([
+    import("modern-screenshot"),
     import("jspdf"),
   ]);
 
-  const node = document.getElementById("malla-export");
-  if (!node) return;
+  const node = document.getElementById("malla-export") as HTMLElement | null;
+  if (!node) {
+    throw new Error("malla-export node not found");
+  }
 
-  const canvas = await html2canvas(node, {
-    backgroundColor: "#f8fafc",
+  const grid = node.firstElementChild as HTMLElement | null;
+  const targetNode = grid ?? node;
+  const targetWidth = targetNode.scrollWidth;
+  const targetHeight = targetNode.scrollHeight;
+
+  const isDark = document.documentElement.classList.contains("dark");
+  const backgroundColor = isDark ? "#0f1115" : "#f8fafc";
+
+  const canvas = await domToCanvas(targetNode, {
+    backgroundColor,
+    width: targetWidth,
+    height: targetHeight,
     scale: 2,
-    windowWidth: node.scrollWidth,
+    style: {
+      transform: "none",
+      overflow: "visible",
+    },
   });
+
   const imgData = canvas.toDataURL("image/png");
+
+  const pageWidth = canvas.width;
+  const pageHeight = canvas.height + 80;
+
   const pdf = new jsPDF({
-    orientation: "landscape",
+    orientation: pageWidth > pageHeight ? "landscape" : "portrait",
     unit: "px",
-    format: [canvas.width, canvas.height + 60],
+    format: [pageWidth, pageHeight],
+    hotfixes: ["px_scaling"],
   });
-  pdf.setFontSize(14);
-  pdf.text(`Malla Curricular - ${careerLabel}`, 20, 30);
-  pdf.addImage(imgData, "PNG", 0, 50, canvas.width, canvas.height);
+
+  pdf.setFontSize(18);
+  pdf.text(`Malla Curricular - ${careerLabel}`, 24, 36);
+  pdf.setFontSize(10);
+  pdf.setTextColor(120, 120, 120);
+  pdf.text(
+    `Generado ${new Date().toLocaleDateString("es-PE")} - malla-fisi.vercel.app`,
+    24,
+    54,
+  );
+  pdf.addImage(imgData, "PNG", 0, 70, canvas.width, canvas.height);
+
   const safe = careerLabel.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase();
   pdf.save(`malla-${safe}-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
