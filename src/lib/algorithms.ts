@@ -12,6 +12,7 @@ export interface Warning {
   level: "error" | "warning" | "info";
   message: string;
   courseCode?: string;
+  affectedCodes?: string[];
 }
 
 export const CREDIT_TARGETS = {
@@ -111,6 +112,7 @@ export function detectIssues(
         level: "error",
         message: `Codigo duplicado "${code}": ${names}`,
         courseCode: bucket[0].code,
+        affectedCodes: bucket.map((c) => c.code),
       });
     }
   }

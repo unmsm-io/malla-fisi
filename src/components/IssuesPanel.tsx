@@ -1,6 +1,14 @@
 "use client";
 
-import { AlertCircle, AlertTriangle, ChevronRight, Info, Sparkles } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ChevronRight,
+  Crosshair,
+  Info,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import type { Warning } from "@/lib/algorithms";
 import { type Proposal, proposalsForWarning } from "@/lib/proposals";
@@ -13,6 +21,7 @@ interface Props {
   placement: Placement;
   onApplyProposal: (proposal: Proposal) => void;
   onHoverProposal: (codes: string[] | null) => void;
+  onLocate: (codes: string[]) => void;
 }
 
 const levelStyles = {
@@ -27,6 +36,7 @@ export function IssuesPanel({
   placement,
   onApplyProposal,
   onHoverProposal,
+  onLocate,
 }: Props) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
@@ -88,7 +98,11 @@ export function IssuesPanel({
           warnings.map((w, i) => {
             const { icon: Icon, color, bg } = levelStyles[w.level];
             const proposals = proposalsForWarning(w, { courses, placement });
+            const codes = w.affectedCodes ?? (w.courseCode ? [w.courseCode] : []);
+            const placedCodes = codes.filter((c) => placement[c] !== undefined);
             const isExpanded = expandedIdx === i;
+            const hasActions = proposals.length > 0 || placedCodes.length > 0;
+
             return (
               <div
                 key={i}
@@ -101,17 +115,27 @@ export function IssuesPanel({
               >
                 <button
                   type="button"
-                  onClick={() => setExpandedIdx(isExpanded ? null : i)}
+                  onClick={() => {
+                    if (placedCodes.length > 0) onLocate(placedCodes);
+                    setExpandedIdx(isExpanded ? null : i);
+                  }}
+                  onMouseEnter={() => codes.length > 0 && onHoverProposal(codes)}
+                  onMouseLeave={() => onHoverProposal(null)}
                   className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-[11px] leading-tight hover:bg-accent/50"
                 >
                   <Icon size={12} className={cn("mt-0.5 shrink-0", color)} />
                   <span className="flex-1">{w.message}</span>
+                  {placedCodes.length > 0 && (
+                    <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-sky-600 dark:text-sky-400">
+                      <Crosshair size={8} />
+                    </span>
+                  )}
                   {proposals.length > 0 && (
                     <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-violet-500/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-violet-600 dark:text-violet-400">
                       <Sparkles size={8} /> {proposals.length}
                     </span>
                   )}
-                  {proposals.length > 0 && (
+                  {hasActions && (
                     <ChevronRight
                       size={11}
                       className={cn(
@@ -121,20 +145,74 @@ export function IssuesPanel({
                     />
                   )}
                 </button>
-                {isExpanded && proposals.length > 0 && (
-                  <ProposalList
-                    proposals={proposals}
-                    onApply={(p) => {
-                      onApplyProposal(p);
-                      setExpandedIdx(null);
-                    }}
-                    onHover={onHoverProposal}
-                  />
-                )}
-                {isExpanded && proposals.length === 0 && (
-                  <p className="px-2 pb-2 pl-7 text-[10px] italic text-muted-foreground">
-                    Sin propuestas automaticas. Ajusta manualmente.
-                  </p>
+                {isExpanded && (
+                  <div className="flex flex-col gap-1 px-2 pb-2 pt-0.5">
+                    {placedCodes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => onLocate(placedCodes)}
+                        onMouseEnter={() => onHoverProposal(placedCodes)}
+                        onMouseLeave={() => onHoverProposal(null)}
+                        className="flex items-start gap-2 rounded-md border border-sky-500/40 bg-sky-500/5 px-2 py-1.5 text-left text-[11px] leading-tight transition hover:bg-sky-500/10"
+                      >
+                        <Crosshair size={11} className="mt-0.5 shrink-0 text-sky-500" />
+                        <span className="flex-1">
+                          <span className="font-medium">
+                            Localizar en la malla
+                          </span>
+                          <span className="ml-1 text-[10px] text-muted-foreground">
+                            ({placedCodes.length} curso{placedCodes.length !== 1 ? "s" : ""})
+                          </span>
+                        </span>
+                      </button>
+                    )}
+                    {placedCodes.length > 1 &&
+                      placedCodes.map((code) => {
+                        const c = courses.find((x) => x.code === code);
+                        if (!c) return null;
+                        return (
+                          <button
+                            key={code}
+                            type="button"
+                            onClick={() => {
+                              onApplyProposal({
+                                label: `Quitar ${c.name} de la malla`,
+                                rationale: "Resuelve duplicado dejando solo el otro",
+                                actions: [{ type: "remove", code: c.code }],
+                                affectedCodes: [c.code],
+                              });
+                              setExpandedIdx(null);
+                            }}
+                            onMouseEnter={() => onHoverProposal([c.code])}
+                            onMouseLeave={() => onHoverProposal(null)}
+                            className="flex items-start gap-2 rounded-md border border-border bg-card px-2 py-1.5 text-left text-[11px] leading-tight transition hover:bg-accent"
+                          >
+                            <Trash2 size={11} className="mt-0.5 shrink-0 text-rose-500" />
+                            <div className="flex-1">
+                              <div className="font-medium">Quitar {c.name}</div>
+                              <div className="mt-0.5 text-[10px] text-muted-foreground">
+                                Codigo {c.code} · ciclo {placement[c.code] ?? "?"}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    {proposals.length > 0 && (
+                      <ProposalList
+                        proposals={proposals}
+                        onApply={(p) => {
+                          onApplyProposal(p);
+                          setExpandedIdx(null);
+                        }}
+                        onHover={onHoverProposal}
+                      />
+                    )}
+                    {!hasActions && (
+                      <p className="px-1 py-1 text-[10px] italic text-muted-foreground">
+                        Sin acciones disponibles. Ajusta manualmente.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             );

@@ -111,6 +111,8 @@ export function MallaBuilder({ data }: Props) {
   const [editingCode, setEditingCode] = useState<string | null>(null);
   const [hoveredCode, setHoveredCode] = useState<string | null>(null);
   const [proposalHoverCodes, setProposalHoverCodes] = useState<string[] | null>(null);
+  const [locatedCodes, setLocatedCodes] = useState<Set<string>>(new Set());
+  const locateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showEdges, setShowEdges] = useState(true);
   const [showCompare, setShowCompare] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -175,6 +177,22 @@ export function MallaBuilder({ data }: Props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [handleUndo]);
+
+  function handleLocate(codes: string[]) {
+    if (codes.length === 0) return;
+    if (locateTimerRef.current) clearTimeout(locateTimerRef.current);
+    setLocatedCodes(new Set(codes));
+    requestAnimationFrame(() => {
+      const first = codes[0];
+      const el = gridRef.current?.querySelector(
+        `[data-course-code="${first}"]`,
+      ) as HTMLElement | null;
+      el?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    });
+    locateTimerRef.current = setTimeout(() => {
+      setLocatedCodes(new Set());
+    }, 3000);
+  }
 
   function handleApplyProposal(p: Proposal) {
     commitPlacement((prev) => applyProposal(prev, p.actions));
@@ -244,6 +262,7 @@ export function MallaBuilder({ data }: Props) {
 
   const highlightFor = useCallback(
     (code: string): CardHighlight => {
+      if (locatedCodes.has(code)) return "self";
       if (proposalHoverCodes && proposalHoverCodes.includes(code)) return "self";
       if (!hoveredCode) return "none";
       if (code === hoveredCode) return "self";
@@ -251,7 +270,7 @@ export function MallaBuilder({ data }: Props) {
       if (chain.descendants.has(code)) return "descendant";
       return "none";
     },
-    [hoveredCode, chain, proposalHoverCodes],
+    [hoveredCode, chain, proposalHoverCodes, locatedCodes],
   );
 
   function coursesInCycle(cycle: number): Course[] {
@@ -596,6 +615,7 @@ export function MallaBuilder({ data }: Props) {
               placement={placement}
               onApplyProposal={handleApplyProposal}
               onHoverProposal={setProposalHoverCodes}
+              onLocate={handleLocate}
             />
           </aside>
 
