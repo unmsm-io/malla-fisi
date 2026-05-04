@@ -8,7 +8,7 @@ import {
   Info,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { autoOrganize, defaultPlacementFromExcel } from "@/lib/algorithms";
 import type { Course, CoursesData, Placement } from "@/lib/types";
 import { CATEGORY_STYLES, ROMAN, cn, normalizeName } from "@/lib/utils";
@@ -519,23 +519,53 @@ function ColumnHeader({
   tooltip: string;
   center?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
+  const ref = useRef<HTMLSpanElement | null>(null);
+
+  function show() {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    setCoords({ left: rect.left + rect.width / 2, top: rect.bottom + 6 });
+    setOpen(true);
+  }
+  function hide() {
+    setOpen(false);
+  }
+
   return (
     <span
-      className={cn(
-        "group relative inline-flex items-center gap-1 truncate",
-        center && "justify-center",
-      )}
+      className={cn("inline-flex items-center gap-1 truncate", center && "justify-center")}
     >
       <span className="truncate">{label}</span>
-      <span className="relative inline-flex">
+      <span
+        ref={ref}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+        tabIndex={0}
+        className="inline-flex cursor-help items-center"
+      >
         <Info
-          size={10}
-          className="cursor-help text-muted-foreground/60 transition hover:text-foreground"
+          size={11}
+          className="text-muted-foreground/60 transition hover:text-foreground"
         />
-        <span className="pointer-events-none invisible absolute left-1/2 top-5 z-10 w-56 -translate-x-1/2 rounded-md border border-border bg-popover bg-card px-2 py-1.5 text-[10px] font-normal normal-case leading-snug tracking-normal text-foreground opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
+      </span>
+      {open && coords && (
+        <span
+          style={{
+            position: "fixed",
+            left: coords.left,
+            top: coords.top,
+            transform: "translateX(-50%)",
+            zIndex: 100,
+          }}
+          className="pointer-events-none w-64 rounded-md border border-border bg-card px-2.5 py-2 text-[11px] font-normal normal-case leading-snug tracking-normal text-foreground shadow-xl"
+        >
           {tooltip}
         </span>
-      </span>
+      )}
     </span>
   );
 }
