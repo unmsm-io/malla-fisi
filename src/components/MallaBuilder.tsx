@@ -18,7 +18,9 @@ import {
   Network,
   RotateCcw,
   Sparkles,
+  Trash2,
   Undo2,
+  Upload,
   Wand2,
   X,
 } from "lucide-react";
@@ -42,10 +44,13 @@ import { CompareView } from "./CompareView";
 import { CardHighlight, CourseCard } from "./CourseCard";
 import { CoursePalette } from "./CoursePalette";
 import { CycleColumn } from "./CycleColumn";
+import { ImportDialog } from "./ImportDialog";
 import { IssuesPanel } from "./IssuesPanel";
 import { PrereqEdges } from "./PrereqEdges";
 import { PrereqEditor } from "./PrereqEditor";
 import { ThemeToggle } from "./ThemeToggle";
+import type { Career } from "@/lib/types";
+import type { ImportResult } from "@/lib/import";
 
 interface Props {
   data: CoursesData;
@@ -53,10 +58,41 @@ interface Props {
 
 const CYCLES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
+const IMPORTED_KEY = "malla-fisi:v1:imported-careers";
+
+function loadImportedCareers(): Record<string, Career> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(IMPORTED_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, Career>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveImportedCareers(careers: Record<string, Career>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(IMPORTED_KEY, JSON.stringify(careers));
+  } catch {}
+}
+
 export function MallaBuilder({ data }: Props) {
-  const careerSlugs = Object.keys(data.careers);
-  const [careerSlug, setCareerSlug] = useState<string>(careerSlugs[0]);
-  const career = data.careers[careerSlug];
+  const [importedCareers, setImportedCareers] = useState<Record<string, Career>>({});
+  const [showImport, setShowImport] = useState(false);
+
+  useEffect(() => {
+    setImportedCareers(loadImportedCareers());
+  }, []);
+
+  const mergedData = useMemo<CoursesData>(
+    () => ({ careers: { ...data.careers, ...importedCareers } }),
+    [data, importedCareers],
+  );
+
+  const careerSlugs = Object.keys(mergedData.careers);
+  const [careerSlug, setCareerSlug] = useState<string>(Object.keys(data.careers)[0]);
+  const career = mergedData.careers[careerSlug] ?? mergedData.careers[careerSlugs[0]];
 
   const [specialtyOverrides, setSpecialtyOverrides] = useState<
     Record<string, string[]>
@@ -327,6 +363,33 @@ export function MallaBuilder({ data }: Props) {
     toast.info("Malla limpiada");
   }
 
+  function handleImportConfirm(result: ImportResult) {
+    const next = { ...importedCareers, [result.career.slug]: result.career };
+    setImportedCareers(next);
+    saveImportedCareers(next);
+    setCareerSlug(result.career.slug);
+    setPlacement({});
+    setSpecialtyOverrides({});
+    setShowImport(false);
+    toast.success(
+      `${result.career.label} importada con ${result.career.specifics.length + result.career.specialty.length} cursos`,
+    );
+  }
+
+  function handleDeleteImported() {
+    if (!importedCareers[careerSlug]) return;
+    const ok = window.confirm(
+      `Eliminar "${career.label}" de las carreras importadas? Esta accion no afecta los archivos originales.`,
+    );
+    if (!ok) return;
+    const next = { ...importedCareers };
+    delete next[careerSlug];
+    setImportedCareers(next);
+    saveImportedCareers(next);
+    setCareerSlug(Object.keys(data.careers)[0]);
+    toast.info("Carrera eliminada");
+  }
+
   function handleSavePrereqs(code: string, prereqs: string[]) {
     setSpecialtyOverrides((prev) => ({ ...prev, [code]: prereqs }));
     toast.success("Prerrequisitos actualizados");
@@ -363,7 +426,8 @@ export function MallaBuilder({ data }: Props) {
               >
                 {careerSlugs.map((slug) => (
                   <option key={slug} value={slug}>
-                    {data.careers[slug].label}
+                    {mergedData.careers[slug].label}
+                    {importedCareers[slug] ? " (importada)" : ""}
                   </option>
                 ))}
               </select>
@@ -372,6 +436,24 @@ export function MallaBuilder({ data }: Props) {
                 className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
             </div>
+            <button
+              type="button"
+              onClick={() => setShowImport(true)}
+              title="Importar carrera desde Excel"
+              className="flex items-center gap-1 rounded-md border border-dashed border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:border-emerald-500/40 hover:text-foreground"
+            >
+              <Upload size={11} /> Importar
+            </button>
+            {importedCareers[careerSlug] && (
+              <button
+                type="button"
+                onClick={handleDeleteImported}
+                title="Eliminar esta carrera importada"
+                className="flex items-center gap-1 rounded-md border border-rose-500/30 bg-rose-500/5 px-2 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
+              >
+                <Trash2 size={11} />
+              </button>
+            )}
 
             <div className="flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1">
               <Stat label="Cursos" value={`${placedCount}/${allCourses.length}`} />
@@ -577,10 +659,17 @@ export function MallaBuilder({ data }: Props) {
 
       {showCompare && (
         <CompareView
-          data={data}
+          data={mergedData}
           currentSlug={careerSlug}
           currentPlacement={placement}
           onClose={() => setShowCompare(false)}
+        />
+      )}
+
+      {showImport && (
+        <ImportDialog
+          onConfirm={handleImportConfirm}
+          onClose={() => setShowImport(false)}
         />
       )}
 
