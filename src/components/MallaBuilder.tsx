@@ -407,12 +407,12 @@ export function MallaBuilder({ data }: Props) {
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex h-screen flex-col overflow-hidden">
         <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-md">
-          <div className="flex flex-wrap items-center gap-2 px-3 py-2 lg:gap-3 lg:px-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-2 lg:gap-2.5 lg:px-4">
+            <div className="flex shrink-0 items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground text-[12px] font-black text-background">
                 M
               </div>
-              <div className="leading-tight">
+              <div className="hidden leading-tight md:block">
                 <h1 className="text-xs font-bold tracking-tight">Malla FISI</h1>
                 <p className="text-[10px] text-muted-foreground">UNMSM</p>
               </div>
@@ -436,26 +436,22 @@ export function MallaBuilder({ data }: Props) {
                 className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
             </div>
-            <button
-              type="button"
+            <IconButton
+              icon={Upload}
               onClick={() => setShowImport(true)}
-              title="Importar carrera desde Excel"
-              className="flex items-center gap-1 rounded-md border border-dashed border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:border-emerald-500/40 hover:text-foreground"
-            >
-              <Upload size={11} /> Importar
-            </button>
+              tooltip="Importar carrera desde Excel"
+              variant="dashed"
+            />
             {importedCareers[careerSlug] && (
-              <button
-                type="button"
+              <IconButton
+                icon={Trash2}
                 onClick={handleDeleteImported}
-                title="Eliminar esta carrera importada"
-                className="flex items-center gap-1 rounded-md border border-rose-500/30 bg-rose-500/5 px-2 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
-              >
-                <Trash2 size={11} />
-              </button>
+                tooltip="Eliminar esta carrera importada"
+                variant="danger"
+              />
             )}
 
-            <div className="flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1">
+            <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 lg:flex">
               <Stat label="Cursos" value={`${placedCount}/${allCourses.length}`} />
               <Divider />
               <Stat label="Cred" value={String(totalCredits)} />
@@ -467,19 +463,16 @@ export function MallaBuilder({ data }: Props) {
               />
             </div>
 
-            <div className="ml-auto flex flex-wrap items-center gap-1.5">
-              <button
-                type="button"
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              <IconButton
+                icon={BookCheck}
                 onClick={handleLoadDefault}
-                title="Cargar la malla sugerida por el Excel original"
-                className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent"
-              >
-                <BookCheck size={11} /> Plan oficial
-              </button>
+                tooltip="Cargar la malla sugerida por el Excel original"
+              />
               <button
                 type="button"
                 onClick={handleAutoOrganize}
-                title="Coloca todos los cursos en el ciclo minimo posible"
+                title="Coloca todos los cursos en el ciclo minimo posible respetando prereqs"
                 className="flex items-center gap-1 rounded-md bg-foreground px-2.5 py-1 text-[11px] font-semibold text-background hover:opacity-90"
               >
                 <Sparkles size={11} /> Auto
@@ -490,7 +483,7 @@ export function MallaBuilder({ data }: Props) {
                 disabled={errorCount === 0}
                 title={
                   errorCount === 0
-                    ? "No hay errores que arreglar (solo warnings de sobrecarga)"
+                    ? "No hay errores que arreglar"
                     : "Genera un plan de fixes para los errores y muestra preview"
                 }
                 className={cn(
@@ -500,75 +493,52 @@ export function MallaBuilder({ data }: Props) {
                     : "border border-border bg-card text-muted-foreground",
                 )}
               >
-                <Wand2 size={11} /> Fix all ({errorCount})
+                <Wand2 size={11} /> Fix ({errorCount})
               </button>
-              <button
-                type="button"
+
+              <span className="mx-1 h-5 w-px bg-border" />
+
+              <IconButton
+                icon={Network}
                 onClick={() => setShowEdges((v) => !v)}
-                title="Mostrar/ocultar flechas de prerequisitos"
-                className={cn(
-                  "flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition",
-                  showEdges
-                    ? "border-violet-500/50 bg-violet-500/10 text-violet-700 dark:text-violet-300"
-                    : "border-border bg-card hover:bg-accent",
-                )}
-              >
-                <Network size={11} /> Edges
-              </button>
-              <button
-                type="button"
+                tooltip="Mostrar/ocultar flechas de prerequisitos"
+                active={showEdges}
+              />
+              <IconButton
+                icon={Columns}
                 onClick={() => setShowCompare(true)}
-                title="Comparar carreras lado a lado"
-                className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent"
-              >
-                <Columns size={11} /> Comparar
-              </button>
-              <button
-                type="button"
+                tooltip="Comparar carreras lado a lado"
+              />
+              <IconButton
+                icon={Undo2}
                 onClick={handleUndo}
                 disabled={history.length === 0}
-                title="Deshacer (Cmd+Z)"
-                className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Undo2 size={11} /> Undo
-              </button>
-              <button
-                type="button"
+                tooltip="Deshacer (Cmd+Z)"
+              />
+              <IconButton
+                icon={RotateCcw}
                 onClick={handleReset}
                 disabled={placedCount === 0}
-                title="Vaciar la malla"
-                className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <RotateCcw size={11} /> Limpiar
-              </button>
-              <button
-                type="button"
-                onClick={() => exportToExcel(allCourses, placement, career.label)}
-                title="Exportar malla a Excel"
-                className="flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
-              >
-                <FileSpreadsheet size={11} /> Excel
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
+                tooltip="Vaciar la malla"
+              />
+
+              <span className="mx-1 h-5 w-px bg-border" />
+
+              <ExportMenu
+                onExcel={() => exportToExcel(allCourses, placement, career.label)}
+                onPdf={async () => {
                   const id = toast.loading("Generando PDF...");
                   try {
                     await exportToPdf(career.label);
                     toast.success("PDF descargado", { id });
                   } catch (err) {
-                    console.error(err);
                     toast.error(
-                      `Error generando PDF: ${err instanceof Error ? err.message : "desconocido"}`,
+                      `Error: ${err instanceof Error ? err.message : "desconocido"}`,
                       { id },
                     );
                   }
                 }}
-                title="Exportar malla a PDF"
-                className="flex items-center gap-1 rounded-md bg-rose-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-700"
-              >
-                <Download size={11} /> PDF
-              </button>
+              />
               <ThemeToggle />
             </div>
           </div>
@@ -936,4 +906,118 @@ function Stat({
 
 function Divider() {
   return <span className="h-3 w-px bg-border" />;
+}
+
+function IconButton({
+  icon: Icon,
+  onClick,
+  tooltip,
+  active,
+  disabled,
+  variant,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  onClick: () => void;
+  tooltip: string;
+  active?: boolean;
+  disabled?: boolean;
+  variant?: "dashed" | "danger";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={tooltip}
+      aria-label={tooltip}
+      className={cn(
+        "flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed disabled:opacity-40",
+        variant === "dashed" &&
+          "border-dashed border-border bg-card text-muted-foreground hover:border-emerald-500/40 hover:text-foreground",
+        variant === "danger" &&
+          "border-rose-500/30 bg-rose-500/5 text-rose-600 hover:bg-rose-500/10 dark:text-rose-400",
+        !variant &&
+          (active
+            ? "border-violet-500/50 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+            : "border-border bg-card hover:bg-accent"),
+      )}
+    >
+      <Icon size={13} />
+    </button>
+  );
+}
+
+function ExportMenu({
+  onExcel,
+  onPdf,
+}: {
+  onExcel: () => void;
+  onPdf: () => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    if (open) {
+      window.addEventListener("mousedown", onClick);
+      window.addEventListener("keydown", onKey);
+    }
+    return () => {
+      window.removeEventListener("mousedown", onClick);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        title="Exportar malla"
+        className="flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+      >
+        <Download size={11} /> Exportar
+        <ChevronDown size={10} className={cn("transition", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-9 z-30 w-44 overflow-hidden rounded-md border border-border bg-card shadow-xl">
+          <button
+            type="button"
+            onClick={() => {
+              onExcel();
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium hover:bg-accent"
+          >
+            <FileSpreadsheet size={13} className="text-emerald-600" />
+            <div>
+              <div>Excel (.xlsx)</div>
+              <div className="text-[10px] text-muted-foreground">Tabla por ciclo</div>
+            </div>
+          </button>
+          <div className="h-px bg-border" />
+          <button
+            type="button"
+            onClick={() => {
+              void onPdf();
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium hover:bg-accent"
+          >
+            <Download size={13} className="text-rose-600" />
+            <div>
+              <div>PDF imagen</div>
+              <div className="text-[10px] text-muted-foreground">Render visual</div>
+            </div>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
