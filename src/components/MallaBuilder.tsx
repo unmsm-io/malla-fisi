@@ -409,12 +409,19 @@ export function MallaBuilder({ data }: Props) {
         <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-md">
           <div className="flex items-center gap-2 px-3 py-2 lg:gap-2.5 lg:px-4">
             <div className="flex shrink-0 items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground text-[12px] font-black text-background">
-                M
+              <div
+                className="flex h-8 w-8 items-center justify-center rounded-md border bg-accent font-serif text-[13px] font-bold tracking-tighter text-gold"
+                style={{ borderColor: "var(--gold)" }}
+              >
+                MF
               </div>
               <div className="hidden leading-tight md:block">
-                <h1 className="text-xs font-bold tracking-tight">Malla FISI</h1>
-                <p className="text-[10px] text-muted-foreground">UNMSM</p>
+                <h1 className="font-serif text-[13px] font-bold tracking-tight">
+                  Malla FISI
+                </h1>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  UNMSM
+                </p>
               </div>
             </div>
 

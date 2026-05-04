@@ -1,59 +1,64 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Light mode (UNMSM academic light - vellum + ink) */
 :root {
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.18 0.01 264);
-  --muted: oklch(0.96 0.005 264);
-  --muted-foreground: oklch(0.46 0.02 264);
+  --background: oklch(0.978 0.008 91.5);
+  --foreground: oklch(0.22 0.012 170);
+  --muted: oklch(0.94 0.008 91.5);
+  --muted-foreground: oklch(0.45 0.015 170);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.01 264);
-  --border: oklch(0.92 0.005 264);
-  --input: oklch(0.94 0.005 264);
-  --ring: oklch(0.5 0.18 270);
-  --accent: oklch(0.96 0.01 264);
-  --accent-foreground: oklch(0.2 0.01 264);
+  --card-foreground: oklch(0.22 0.012 170);
+  --border: oklch(0.88 0.012 95);
+  --input: oklch(0.94 0.008 91.5);
+  --ring: oklch(0.748 0.099 86.1);
+  --accent: oklch(0.93 0.018 95);
+  --accent-foreground: oklch(0.22 0.012 170);
 
-  --eegg-bg: oklch(0.97 0.04 90);
-  --eegg-border: oklch(0.85 0.12 90);
-  --eegg-fg: oklch(0.35 0.13 75);
+  --gold: oklch(0.62 0.105 80);
+  --green-academic: oklch(0.55 0.07 162);
 
-  --especifico-bg: oklch(0.97 0.03 230);
-  --especifico-border: oklch(0.78 0.14 230);
-  --especifico-fg: oklch(0.35 0.15 245);
+  --eegg-bg: oklch(0.94 0.04 90);
+  --eegg-border: oklch(0.78 0.1 86);
+  --eegg-fg: oklch(0.4 0.1 75);
 
-  --especialidad-bg: oklch(0.97 0.03 295);
-  --especialidad-border: oklch(0.78 0.16 295);
-  --especialidad-fg: oklch(0.4 0.18 295);
+  --especifico-bg: oklch(0.94 0.03 162);
+  --especifico-border: oklch(0.7 0.08 162);
+  --especifico-fg: oklch(0.36 0.08 162);
 
-  --emerald: oklch(0.65 0.16 155);
-  --rose: oklch(0.62 0.21 25);
+  --especialidad-bg: oklch(0.93 0.02 170);
+  --especialidad-border: oklch(0.62 0.06 170);
+  --especialidad-fg: oklch(0.3 0.04 170);
 }
 
+/* Dark mode (UNMSM academic dark - escudo verde-petroleo + dorado) */
 .dark {
-  --background: oklch(0.16 0.01 264);
-  --foreground: oklch(0.96 0.005 264);
-  --muted: oklch(0.21 0.01 264);
-  --muted-foreground: oklch(0.65 0.02 264);
-  --card: oklch(0.19 0.01 264);
-  --card-foreground: oklch(0.96 0.005 264);
-  --border: oklch(0.27 0.01 264);
-  --input: oklch(0.24 0.01 264);
-  --ring: oklch(0.65 0.18 270);
-  --accent: oklch(0.24 0.01 264);
-  --accent-foreground: oklch(0.96 0.005 264);
+  --background: oklch(0.204 0.006 178.9);    /* #141817 */
+  --foreground: oklch(0.958 0.012 91.5);     /* warm vellum */
+  --muted: oklch(0.233 0.008 169.6);          /* #1a1f1d */
+  --muted-foreground: oklch(0.653 0.010 179.4); /* sage gray */
+  --card: oklch(0.233 0.008 169.6);           /* elevated */
+  --card-foreground: oklch(0.958 0.012 91.5);
+  --border: oklch(0.317 0.016 171.2);         /* botella border */
+  --input: oklch(0.27 0.012 171);
+  --ring: oklch(0.748 0.099 86.1);            /* gold focus */
+  --accent: oklch(0.273 0.017 170.8);         /* #1f2a26 */
+  --accent-foreground: oklch(0.958 0.012 91.5);
 
-  --eegg-bg: oklch(0.28 0.06 75);
-  --eegg-border: oklch(0.5 0.13 75);
-  --eegg-fg: oklch(0.88 0.1 90);
+  --gold: oklch(0.748 0.099 86.1);            /* #c9a961 */
+  --green-academic: oklch(0.592 0.064 161.9); /* #5a8a72 */
 
-  --especifico-bg: oklch(0.26 0.06 240);
-  --especifico-border: oklch(0.5 0.15 240);
-  --especifico-fg: oklch(0.85 0.1 230);
+  --eegg-bg: oklch(0.32 0.05 86);
+  --eegg-border: oklch(0.55 0.09 86);
+  --eegg-fg: oklch(0.86 0.09 86);
 
-  --especialidad-bg: oklch(0.26 0.07 295);
-  --especialidad-border: oklch(0.55 0.16 295);
-  --especialidad-fg: oklch(0.88 0.1 295);
+  --especifico-bg: oklch(0.3 0.04 162);
+  --especifico-border: oklch(0.55 0.07 162);
+  --especifico-fg: oklch(0.86 0.07 162);
+
+  --especialidad-bg: oklch(0.3 0.025 170);
+  --especialidad-border: oklch(0.5 0.05 170);
+  --especialidad-fg: oklch(0.85 0.04 170);
 }
 
 @theme inline {
@@ -69,6 +74,9 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
 
+  --color-gold: var(--gold);
+  --color-green-academic: var(--green-academic);
+
   --color-eegg-bg: var(--eegg-bg);
   --color-eegg-border: var(--eegg-border);
   --color-eegg-fg: var(--eegg-fg);
@@ -81,6 +89,7 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: Georgia, "Times New Roman", serif;
 }
 
 * {
