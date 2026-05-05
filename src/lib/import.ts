@@ -1,8 +1,9 @@
-import type { Career, Course } from "./types";
+import type { Career, Course, MallaState } from "./types";
 import { normalizeName } from "./utils";
 
 export interface ImportResult {
   career: Career;
+  state?: MallaState;
   warnings: string[];
   sourceSheet: string;
   detectedColumns: { field: string; header: string | null }[];
@@ -58,6 +59,15 @@ function parsePrereqs(s: string): string[] {
   return t.split(/[;\n]/).map((p) => p.trim()).filter(Boolean);
 }
 
+function parseCycle(value: unknown): number {
+  const raw = String(value ?? "").trim();
+  const n = Number(raw);
+  if (n > 0) return n;
+  const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+  const index = roman.indexOf(raw.toUpperCase());
+  return index >= 0 ? index + 1 : 0;
+}
+
 function classifyCategory(raw: string): Course["category"] {
   const norm = normalizeName(raw ?? "");
   if (norm.includes("EEGG") || norm.includes("ESTUDIOS GENERALES")) return "EEGG";
@@ -87,7 +97,7 @@ function parseSheet(rows: unknown[][], sheetName: string): {
     if (!row) continue;
     const name = String(row[map.name] ?? "").trim();
     if (!name) continue;
-    const cycle = Number(row[map.cycle]) || 0;
+    const cycle = parseCycle(row[map.cycle]);
     if (!cycle) continue;
 
     const code =
@@ -125,6 +135,47 @@ function parseSheet(rows: unknown[][], sheetName: string): {
   return { courses, warnings, headers, map, totalRows: rows.length - 1 };
 }
 
+function parseEmbeddedState(
+  wb: {
+    Sheets: Record<string, unknown>;
+    SheetNames: string[];
+  },
+  sheetToJson: typeof import("xlsx").utils.sheet_to_json,
+): { stateId?: string; state?: MallaState } | null {
+  const sheet = wb.Sheets["_malla_state"];
+  if (!sheet) return null;
+  const rows = sheetToJson(sheet, {
+    header: 1,
+    defval: "",
+  }) as string[][];
+  let stateId = "";
+  const chunks: string[] = [];
+  for (const row of rows.slice(1)) {
+    const key = String(row[0] ?? "");
+    const value = String(row[1] ?? "");
+    if (key === "stateId") stateId = value;
+    if (key.startsWith("chunk_")) chunks.push(value);
+  }
+  if (chunks.length === 0) return stateId ? { stateId } : null;
+  try {
+    const state = JSON.parse(chunks.join("")) as MallaState;
+    return { stateId: stateId || state.stateId, state };
+  } catch {
+    return stateId ? { stateId } : null;
+  }
+}
+
+async function fetchSavedState(stateId: string): Promise<MallaState | null> {
+  try {
+    const res = await fetch(`/api/states/${encodeURIComponent(stateId)}`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { state?: MallaState };
+    return data.state ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function importExcel(
   file: File,
   label: string,
@@ -132,6 +183,27 @@ export async function importExcel(
   const XLSX = await import("xlsx");
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
+  const embedded = parseEmbeddedState(wb, XLSX.utils.sheet_to_json);
+  const savedState = embedded?.stateId ? await fetchSavedState(embedded.stateId) : null;
+  const restoredState = savedState ?? embedded?.state;
+
+  if (restoredState?.career) {
+    return {
+      career: restoredState.career,
+      state: restoredState,
+      warnings: savedState
+        ? []
+        : embedded?.stateId
+          ? ["No se encontro el estado en la base de datos. Se restauro desde el Excel."]
+          : [],
+      sourceSheet: "_malla_state",
+      detectedColumns: [
+        { field: "Estado guardado", header: restoredState.stateId ?? null },
+        { field: "Carrera", header: restoredState.careerLabel },
+      ],
+      totalRows: restoredState.career.specifics.length + restoredState.career.specialty.length,
+    };
+  }
 
   let best:
     | (NonNullable<ReturnType<typeof parseSheet>> & { name: string })
@@ -153,7 +225,7 @@ export async function importExcel(
 
   if (!best) {
     throw new Error(
-      "No se encontro ninguna hoja con cursos. La hoja debe tener columnas: Asignatura, Ciclo (Ci.), y opcionalmente HT, HP, HL, TH, Cred, Prerrequisitos, Codigo, Area.",
+      "No se encontro ninguna hoja con cursos. La hoja debe tener columnas: Asignatura, Ciclo (Ci.), y opcionalmente Codigo, Creditos, Prerrequisitos y Area.",
     );
   }
 

@@ -1,3 +1,5 @@
+import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
@@ -14,7 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://malla-fisi.vercel.app";
+const SITE_URL = "https://malla-fisi.railly.dev";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -69,26 +71,32 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="es"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden`}
+    <ClerkProvider
+      appearance={{
+        theme: shadcn,
+      }}
     >
-      <body className="h-full overflow-hidden bg-background text-foreground antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {children}
-          <Toaster
-            richColors
-            position="top-center"
-            theme="system"
-            toastOptions={{
-              style: {
-                fontSize: "13px",
-              },
-            }}
-          />
-        </ThemeProvider>
-      </body>
-    </html>
+      <html
+        lang="es"
+        suppressHydrationWarning
+        className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden`}
+      >
+        <body className="h-full overflow-hidden bg-background text-foreground antialiased">
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            {children}
+            <Toaster
+              richColors
+              position="top-center"
+              theme="system"
+              toastOptions={{
+                style: {
+                  fontSize: "13px",
+                },
+              }}
+            />
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

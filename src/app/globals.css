@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@clerk/ui/themes/shadcn.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Light mode (UNMSM academic light - vellum + ink) */
@@ -18,17 +19,17 @@
   --gold: oklch(0.62 0.105 80);
   --green-academic: oklch(0.55 0.07 162);
 
-  --eegg-bg: oklch(0.94 0.04 90);
-  --eegg-border: oklch(0.78 0.1 86);
-  --eegg-fg: oklch(0.4 0.1 75);
+  --eegg-bg: oklch(0.92 0.07 63);
+  --eegg-border: oklch(0.72 0.14 57);
+  --eegg-fg: oklch(0.34 0.11 48);
 
-  --especifico-bg: oklch(0.94 0.03 162);
-  --especifico-border: oklch(0.7 0.08 162);
-  --especifico-fg: oklch(0.36 0.08 162);
+  --especifico-bg: oklch(0.93 0.04 148);
+  --especifico-border: oklch(0.67 0.12 148);
+  --especifico-fg: oklch(0.32 0.09 148);
 
-  --especialidad-bg: oklch(0.93 0.02 170);
-  --especialidad-border: oklch(0.62 0.06 170);
-  --especialidad-fg: oklch(0.3 0.04 170);
+  --especialidad-bg: oklch(0.93 0.035 224);
+  --especialidad-border: oklch(0.69 0.1 224);
+  --especialidad-fg: oklch(0.32 0.08 224);
 }
 
 /* Dark mode (UNMSM academic dark - escudo verde-petroleo + dorado) */
@@ -48,17 +49,17 @@
   --gold: oklch(0.748 0.099 86.1);            /* #c9a961 */
   --green-academic: oklch(0.592 0.064 161.9); /* #5a8a72 */
 
-  --eegg-bg: oklch(0.32 0.05 86);
-  --eegg-border: oklch(0.55 0.09 86);
-  --eegg-fg: oklch(0.86 0.09 86);
+  --eegg-bg: oklch(0.34 0.06 57);
+  --eegg-border: oklch(0.58 0.12 57);
+  --eegg-fg: oklch(0.86 0.09 57);
 
-  --especifico-bg: oklch(0.3 0.04 162);
-  --especifico-border: oklch(0.55 0.07 162);
-  --especifico-fg: oklch(0.86 0.07 162);
+  --especifico-bg: oklch(0.29 0.045 148);
+  --especifico-border: oklch(0.55 0.09 148);
+  --especifico-fg: oklch(0.84 0.08 148);
 
-  --especialidad-bg: oklch(0.3 0.025 170);
-  --especialidad-border: oklch(0.5 0.05 170);
-  --especialidad-fg: oklch(0.85 0.04 170);
+  --especialidad-bg: oklch(0.3 0.04 224);
+  --especialidad-border: oklch(0.56 0.09 224);
+  --especialidad-fg: oklch(0.86 0.08 224);
 }
 
 @theme inline {

@@ -9,17 +9,19 @@ interface Props {
   course: Course | null;
   allCourses: Course[];
   onClose: () => void;
-  onSave: (code: string, prereqs: string[]) => void;
+  onSave: (code: string, nextCode: string, prereqs: string[]) => void;
 }
 
 export function PrereqEditor({ course, allCourses, onClose, onSave }: Props) {
   const [selected, setSelected] = useState<string[]>([]);
   const [filter, setFilter] = useState("");
+  const [nextCode, setNextCode] = useState("");
 
   useEffect(() => {
     if (course) {
       setSelected(course.prereqs);
       setFilter("");
+      setNextCode(course.code);
     }
   }, [course]);
 
@@ -57,12 +59,9 @@ export function PrereqEditor({ course, allCourses, onClose, onSave }: Props) {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-              Editar prerrequisitos
+              Editar curso
             </span>
             <h3 className="mt-0.5 text-base font-bold leading-tight">{course.name}</h3>
-            <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-              {course.code}
-            </p>
           </div>
           <button
             type="button"
@@ -73,6 +72,18 @@ export function PrereqEditor({ course, allCourses, onClose, onSave }: Props) {
             <X size={15} />
           </button>
         </div>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Codigo
+          </span>
+          <input
+            type="text"
+            value={nextCode}
+            onChange={(e) => setNextCode(e.target.value)}
+            className="rounded-md border border-border bg-input/30 px-3 py-2 font-mono text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+        </label>
 
         <div className="relative">
           <Search
@@ -137,7 +148,7 @@ export function PrereqEditor({ course, allCourses, onClose, onSave }: Props) {
             <button
               type="button"
               onClick={() => {
-                onSave(course.code, selected);
+                onSave(course.code, nextCode, selected);
                 onClose();
               }}
               className="rounded-md bg-foreground px-3 py-1.5 text-xs font-semibold text-background hover:opacity-90"

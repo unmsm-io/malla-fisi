@@ -1,6 +1,9 @@
 "use client";
 
 import {
+  UserButton,
+} from "@clerk/nextjs";
+import {
   DndContext,
   type DragEndEvent,
   DragOverlay,
@@ -17,6 +20,7 @@ import {
   FileSpreadsheet,
   Network,
   RotateCcw,
+  Save,
   Sparkles,
   Trash2,
   Undo2,
@@ -39,7 +43,7 @@ import { applyProposal, type Proposal } from "@/lib/proposals";
 import { solveIssues } from "@/lib/solver";
 import type { Warning } from "@/lib/algorithms";
 import { loadState, saveState } from "@/lib/storage";
-import type { Course, CoursesData, Placement } from "@/lib/types";
+import type { Course, CourseOverride, CoursesData, MallaState, Placement } from "@/lib/types";
 import { ROMAN, cn, validatePlacement } from "@/lib/utils";
 import { CompareView } from "./CompareView";
 import { CardHighlight, CourseCard } from "./CourseCard";
@@ -78,6 +82,31 @@ function saveImportedCareers(careers: Record<string, Career>) {
   } catch {}
 }
 
+function legacyPrereqOverrides(
+  specialtyOverrides?: Record<string, string[]>,
+): Record<string, CourseOverride> {
+  if (!specialtyOverrides) return {};
+  return Object.fromEntries(
+    Object.entries(specialtyOverrides).map(([code, prereqs]) => [code, { prereqs }]),
+  );
+}
+
+function fingerprintState(input: {
+  careerSlug: string;
+  career: Career;
+  placement: Placement;
+  courseOverrides: Record<string, CourseOverride>;
+  stateId?: string;
+}) {
+  return JSON.stringify({
+    stateId: input.stateId,
+    careerSlug: input.careerSlug,
+    career: input.career,
+    placement: input.placement,
+    courseOverrides: input.courseOverrides,
+  });
+}
+
 export function MallaBuilder({ data }: Props) {
   const [importedCareers, setImportedCareers] = useState<Record<string, Career>>({});
   const [showImport, setShowImport] = useState(false);
@@ -95,16 +124,18 @@ export function MallaBuilder({ data }: Props) {
   const [careerSlug, setCareerSlug] = useState<string>(Object.keys(data.careers)[0]);
   const career = mergedData.careers[careerSlug] ?? mergedData.careers[careerSlugs[0]];
 
-  const [specialtyOverrides, setSpecialtyOverrides] = useState<
-    Record<string, string[]>
-  >({});
+  const [courseOverrides, setCourseOverrides] = useState<Record<string, CourseOverride>>({});
+  const [stateId, setStateId] = useState<string | undefined>();
+  const [saving, setSaving] = useState(false);
+  const [lastSavedFingerprint, setLastSavedFingerprint] = useState<string>("");
 
   const allCourses: Course[] = useMemo(() => {
     return [...career.specifics, ...career.specialty].map((c) => ({
       ...c,
-      prereqs: specialtyOverrides[c.code] ?? c.prereqs,
+      code: courseOverrides[c.code]?.code ?? c.code,
+      prereqs: courseOverrides[c.code]?.prereqs ?? c.prereqs,
     }));
-  }, [career, specialtyOverrides]);
+  }, [career, courseOverrides]);
 
   const [placement, setPlacement] = useState<Placement>({});
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
@@ -131,19 +162,39 @@ export function MallaBuilder({ data }: Props) {
   useEffect(() => {
     const saved = loadState(careerSlug);
     if (saved) {
+      const nextOverrides = saved.courseOverrides ?? legacyPrereqOverrides(saved.specialtyOverrides);
       setPlacement(saved.placement);
-      setSpecialtyOverrides(saved.specialtyOverrides);
+      setCourseOverrides(nextOverrides);
+      setStateId(saved.stateId);
+      setLastSavedFingerprint(
+        fingerprintState({
+          careerSlug,
+          career,
+          placement: saved.placement,
+          courseOverrides: nextOverrides,
+          stateId: saved.stateId,
+        }),
+      );
     } else {
       setPlacement({});
-      setSpecialtyOverrides({});
+      setCourseOverrides({});
+      setStateId(undefined);
+      setLastSavedFingerprint(
+        fingerprintState({
+          careerSlug,
+          career,
+          placement: {},
+          courseOverrides: {},
+        }),
+      );
     }
     setHydrated(true);
-  }, [careerSlug]);
+  }, [careerSlug, career]);
 
   useEffect(() => {
     if (!hydrated) return;
-    saveState(careerSlug, { placement, specialtyOverrides });
-  }, [careerSlug, placement, specialtyOverrides, hydrated]);
+    saveState(careerSlug, { placement, courseOverrides, stateId });
+  }, [careerSlug, placement, courseOverrides, stateId, hydrated]);
 
   const commitPlacement = useCallback(
     (next: Placement | ((prev: Placement) => Placement)) => {
@@ -230,13 +281,115 @@ export function MallaBuilder({ data }: Props) {
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
   );
 
-  const placedCodes = useMemo(() => new Set(Object.keys(placement)), [placement]);
-  const totalSpecifics = career.specifics.length;
-  const totalSpecialty = career.specialty.length;
+  function findBaseCode(code: string): string | null {
+    for (const baseCourse of [...career.specifics, ...career.specialty]) {
+      if (baseCourse.code === code || courseOverrides[baseCourse.code]?.code === code) {
+        return baseCourse.code;
+      }
+    }
+    return null;
+  }
 
-  const specifics = allCourses.filter(
-    (c) => c.category !== "ESPECIALIDAD" && !placedCodes.has(c.code),
+  function buildCurrentState(nextStateId = stateId): MallaState {
+    return {
+      schemaVersion: 1,
+      stateId: nextStateId,
+      careerSlug,
+      careerLabel: career.label,
+      career,
+      placement,
+      courseOverrides,
+      savedAt: new Date().toISOString(),
+    };
+  }
+
+  const currentFingerprint = useMemo(
+    () =>
+      fingerprintState({
+        careerSlug,
+        career,
+        placement,
+        courseOverrides,
+        stateId,
+      }),
+    [careerSlug, career, placement, courseOverrides, stateId],
   );
+  const hasUnsavedChanges = hydrated && currentFingerprint !== lastSavedFingerprint;
+
+  async function handleSaveState() {
+    const id = toast.loading("Guardando estado...");
+    setSaving(true);
+    try {
+      const res = await fetch("/api/states", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildCurrentState()),
+      });
+      const data = (await res.json()) as { id?: string; state?: MallaState; error?: string };
+      if (!res.ok || !data.id) {
+        throw new Error(data.error ?? "No se pudo guardar");
+      }
+      setStateId(data.id);
+      const savedFingerprint = fingerprintState({
+        careerSlug,
+        career,
+        placement,
+        courseOverrides,
+        stateId: data.id,
+      });
+      setLastSavedFingerprint(savedFingerprint);
+      saveState(careerSlug, {
+        placement,
+        courseOverrides,
+        stateId: data.id,
+      });
+      toast.success("Estado guardado", { id });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error guardando", { id });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleExportExcel() {
+    let exportState = buildCurrentState();
+    if (!exportState.stateId || hasUnsavedChanges) {
+      const id = toast.loading("Guardando antes de exportar...");
+      try {
+        const res = await fetch("/api/states", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(exportState),
+        });
+        const data = (await res.json()) as { id?: string; state?: MallaState; error?: string };
+        if (!res.ok || !data.id) throw new Error(data.error ?? "No se pudo guardar");
+        setStateId(data.id);
+        exportState = data.state ?? buildCurrentState(data.id);
+        setLastSavedFingerprint(
+          fingerprintState({
+            careerSlug,
+            career,
+            placement,
+            courseOverrides,
+            stateId: data.id,
+          }),
+        );
+        toast.success("Estado guardado", { id });
+      } catch (error) {
+        toast.warning("Exportando con respaldo embebido, sin guardar en DB", { id });
+        exportState = buildCurrentState();
+      }
+    }
+    await exportToExcel(allCourses, placement, career.label, exportState);
+  }
+
+  const placedCodes = useMemo(() => new Set(Object.keys(placement)), [placement]);
+  const totalEegg = allCourses.filter((c) => c.category === "EEGG").length;
+  const totalSpecifics = allCourses.filter((c) => c.category === "ESPECIFICO").length;
+  const totalSpecialty = allCourses.filter((c) => c.category === "ESPECIALIDAD").length;
+
+  const eegg = allCourses.filter((c) => c.category === "EEGG" && !placedCodes.has(c.code));
+  const specifics = allCourses.filter((c) => c.category === "ESPECIFICO" && !placedCodes.has(c.code));
   const specialty = allCourses.filter(
     (c) => c.category === "ESPECIALIDAD" && !placedCodes.has(c.code),
   );
@@ -294,7 +447,11 @@ export function MallaBuilder({ data }: Props) {
 
     const overId = String(over.id);
 
-    if (overId === "palette-specifics" || overId === "palette-specialty") {
+    if (
+      overId === "palette-eegg" ||
+      overId === "palette-specifics" ||
+      overId === "palette-specialty"
+    ) {
       if (placement[course.code] !== undefined) {
         const { descendants } = getChain(course.code, allCourses);
         const placedDescendants = [...descendants].filter((c) =>
@@ -391,11 +548,42 @@ export function MallaBuilder({ data }: Props) {
     setImportedCareers(next);
     saveImportedCareers(next);
     setCareerSlug(result.career.slug);
-    setPlacement({});
-    setSpecialtyOverrides({});
+    if (result.state) {
+      setPlacement(result.state.placement);
+      setCourseOverrides(result.state.courseOverrides ?? {});
+      setStateId(result.state.stateId);
+      setLastSavedFingerprint(
+        fingerprintState({
+          careerSlug: result.career.slug,
+          career: result.career,
+          placement: result.state.placement,
+          courseOverrides: result.state.courseOverrides ?? {},
+          stateId: result.state.stateId,
+        }),
+      );
+      saveState(result.career.slug, {
+        placement: result.state.placement,
+        courseOverrides: result.state.courseOverrides ?? {},
+        stateId: result.state.stateId,
+      });
+    } else {
+      setPlacement({});
+      setCourseOverrides({});
+      setStateId(undefined);
+      setLastSavedFingerprint(
+        fingerprintState({
+          careerSlug: result.career.slug,
+          career: result.career,
+          placement: {},
+          courseOverrides: {},
+        }),
+      );
+    }
     setShowImport(false);
     toast.success(
-      `${result.career.label} importada con ${result.career.specifics.length + result.career.specialty.length} cursos`,
+      result.state
+        ? `${result.career.label} restaurada desde estado guardado`
+        : `${result.career.label} importada con ${result.career.specifics.length + result.career.specialty.length} cursos`,
     );
   }
 
@@ -413,9 +601,39 @@ export function MallaBuilder({ data }: Props) {
     toast.info("Carrera eliminada");
   }
 
-  function handleSavePrereqs(code: string, prereqs: string[]) {
-    setSpecialtyOverrides((prev) => ({ ...prev, [code]: prereqs }));
-    toast.success("Prerrequisitos actualizados");
+  function handleSaveCourse(code: string, nextCode: string, prereqs: string[]) {
+    const baseCode = findBaseCode(code);
+    if (!baseCode) return;
+    const normalizedNextCode = nextCode.trim();
+    if (!normalizedNextCode) {
+      toast.error("El codigo no puede estar vacio");
+      return;
+    }
+    const duplicate = allCourses.some(
+      (c) => c.code !== code && c.code.trim() === normalizedNextCode,
+    );
+    if (duplicate) {
+      toast.error(`Codigo duplicado: ${normalizedNextCode}`);
+      return;
+    }
+    setCourseOverrides((prev) => ({
+      ...prev,
+      [baseCode]: {
+        ...prev[baseCode],
+        code: normalizedNextCode === baseCode ? undefined : normalizedNextCode,
+        prereqs,
+      },
+    }));
+    if (normalizedNextCode !== code && placement[code] !== undefined) {
+      commitPlacement((prev) => {
+        const next = { ...prev };
+        next[normalizedNextCode] = next[code];
+        delete next[code];
+        return next;
+      });
+      setEditingCode(normalizedNextCode);
+    }
+    toast.success("Curso actualizado");
   }
 
   const editingCourse = editingCode
@@ -493,7 +711,7 @@ export function MallaBuilder({ data }: Props) {
             <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 lg:flex">
               <Stat label="Cursos" value={`${placedCount}/${allCourses.length}`} />
               <Divider />
-              <Stat label="Cred" value={String(totalCredits)} />
+              <Stat label="Creditos" value={String(totalCredits)} />
               <Divider />
               <Stat
                 label="Issues"
@@ -566,8 +784,29 @@ export function MallaBuilder({ data }: Props) {
 
               <span className="mx-1 h-5 w-px bg-border" />
 
+              <button
+                type="button"
+                onClick={() => void handleSaveState()}
+                disabled={saving}
+                title="Guardar estado en Neon"
+                className={cn(
+                  "flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",
+                  hasUnsavedChanges
+                    ? "border-amber-500/40 bg-amber-500/10 text-amber-700 hover:bg-amber-500/15 dark:text-amber-300"
+                    : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300",
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    hasUnsavedChanges ? "bg-amber-500" : "bg-emerald-500",
+                  )}
+                />
+                <Save size={11} /> {hasUnsavedChanges ? "Guardar" : "Guardado"}
+              </button>
+              <UserButton />
               <ExportMenu
-                onExcel={() => exportToExcel(allCourses, placement, career.label)}
+                onExcel={() => void handleExportExcel()}
                 onPdf={async () => {
                   const id = toast.loading("Generando PDF...");
                   try {
@@ -590,23 +829,33 @@ export function MallaBuilder({ data }: Props) {
         <div className="grid min-h-0 flex-1 grid-cols-[300px_1fr] gap-2 p-2 lg:gap-3 lg:p-3">
           <aside className="flex min-h-0 flex-col gap-2">
             <CoursePalette
+              title={`EEGG (${totalEegg})`}
+              courses={eegg}
+              droppableId="palette-eegg"
+              onEditCourse={setEditingCode}
+              onHover={setHoveredCode}
+              highlightFor={highlightFor}
+              accent="orange"
+              totalCount={totalEegg}
+            />
+            <CoursePalette
               title={`Especificos (${totalSpecifics})`}
               courses={specifics}
               droppableId="palette-specifics"
-              onEditPrereqs={() => undefined}
+              onEditCourse={setEditingCode}
               onHover={setHoveredCode}
               highlightFor={highlightFor}
-              accent="sky"
+              accent="green"
               totalCount={totalSpecifics}
             />
             <CoursePalette
               title={`Especialidad (${totalSpecialty})`}
               courses={specialty}
               droppableId="palette-specialty"
-              onEditPrereqs={setEditingCode}
+              onEditCourse={setEditingCode}
               onHover={setHoveredCode}
               highlightFor={highlightFor}
-              accent="violet"
+              accent="blue"
               totalCount={totalSpecialty}
             />
             <IssuesPanel
@@ -637,6 +886,9 @@ export function MallaBuilder({ data }: Props) {
                   cycle={cycle}
                   courses={coursesInCycle(cycle)}
                   analysis={analysis[cycle - 1]}
+                  cumulativeCredits={analysis
+                    .slice(0, cycle)
+                    .reduce((sum, item) => sum + item.credits, 0)}
                   highlightFor={highlightFor}
                   onHover={setHoveredCode}
                   onEditPrereqs={setEditingCode}
@@ -667,7 +919,7 @@ export function MallaBuilder({ data }: Props) {
         course={editingCourse}
         allCourses={allCourses}
         onClose={() => setEditingCode(null)}
-        onSave={handleSavePrereqs}
+        onSave={handleSaveCourse}
       />
 
       {showCompare && (
@@ -890,16 +1142,16 @@ function HintBar() {
         <kbd className="rounded border border-border bg-card px-1 font-mono text-[9px]">
           Hover
         </kbd>{" "}
-        resalta cadena de prereqs y dependientes
+        resalta prerreqs y cursos dependientes
       </span>
       <span className="opacity-40">·</span>
       <span>
-        <span className="inline-block h-2 w-2 rounded-full bg-sky-500" /> prereqs ·{" "}
+        <span className="inline-block h-2 w-2 rounded-full bg-sky-500" /> prerreqs ·{" "}
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />{" "}
         dependientes
       </span>
       <span className="opacity-40">·</span>
-      <span>Drag a panel para quitar (cascade opcional)</span>
+      <span>Arrastra a un panel para quitarlo del ciclo</span>
       <span className="opacity-40">·</span>
       <span>
         <kbd className="rounded border border-border bg-card px-1 font-mono text-[9px]">

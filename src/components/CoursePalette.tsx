@@ -9,23 +9,24 @@ interface Props {
   title: string;
   courses: Course[];
   droppableId: string;
-  onEditPrereqs: (code: string) => void;
+  onEditCourse: (code: string) => void;
   onHover: (code: string | null) => void;
   highlightFor: (code: string) => CardHighlight;
-  accent: "sky" | "violet";
+  accent: "orange" | "green" | "blue";
   totalCount: number;
 }
 
 const accentStyles = {
-  sky: "before:bg-especifico-border",
-  violet: "before:bg-especialidad-border",
+  orange: "before:bg-eegg-border",
+  green: "before:bg-especifico-border",
+  blue: "before:bg-especialidad-border",
 } as const;
 
 export function CoursePalette({
   title,
   courses,
   droppableId,
-  onEditPrereqs,
+  onEditCourse,
   onHover,
   highlightFor,
   accent,
@@ -62,7 +63,7 @@ export function CoursePalette({
             <CourseCard
               key={course.code}
               course={course}
-              onEditPrereqs={accent === "violet" ? onEditPrereqs : undefined}
+              onEditPrereqs={onEditCourse}
               onHover={onHover}
               highlight={highlightFor(course.code)}
             />

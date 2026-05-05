@@ -25,3 +25,19 @@ export interface CoursesData {
 }
 
 export type Placement = Record<string, number>;
+
+export interface CourseOverride {
+  code?: string;
+  prereqs?: string[];
+}
+
+export interface MallaState {
+  schemaVersion: 1;
+  stateId?: string;
+  careerSlug: string;
+  careerLabel: string;
+  career: Career;
+  placement: Placement;
+  courseOverrides: Record<string, CourseOverride>;
+  savedAt?: string;
+}

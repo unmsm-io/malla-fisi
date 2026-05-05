@@ -192,7 +192,7 @@ export function proposalsForOverload(
     const target = rankByCreditBalance(validNext, ctx, course.cred)[0];
     proposals.push({
       label: `Mover ${course.name} a Ciclo ${roman(target)}`,
-      rationale: `Libera ${course.cred}cr del ciclo ${roman(cycle)}`,
+      rationale: `Libera ${course.cred} credito${course.cred !== 1 ? "s" : ""} del ciclo ${roman(cycle)}`,
       affectedCodes: [course.code],
       actions: [{ type: "move", code: course.code, toCycle: target }],
     });

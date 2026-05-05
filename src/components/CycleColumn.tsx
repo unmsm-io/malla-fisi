@@ -10,6 +10,7 @@ interface Props {
   cycle: number;
   courses: Course[];
   analysis: CycleAnalysis;
+  cumulativeCredits: number;
   highlightFor: (code: string) => CardHighlight;
   onHover: (code: string | null) => void;
   onEditPrereqs: (code: string) => void;
@@ -27,12 +28,17 @@ export function CycleColumn({
   cycle,
   courses,
   analysis,
+  cumulativeCredits,
   highlightFor,
   onHover,
   onEditPrereqs,
 }: Props) {
   const { isOver, setNodeRef } = useDroppable({ id: `cycle-${cycle}` });
   const empty = courses.length === 0;
+  const theoryHours = sum(courses, "ht");
+  const practiceHours = sum(courses, "hp");
+  const labHours = sum(courses, "hl");
+  const totalHours = sum(courses, "th");
 
   return (
     <div
@@ -54,14 +60,42 @@ export function CycleColumn({
             {ROMAN[cycle - 1]}
           </h3>
         </div>
-        <span
-          className={cn(
-            "rounded-full px-1.5 py-0.5 font-mono text-[9px] tabular-nums transition",
-            statusStyles[analysis.status],
-          )}
-        >
-          {analysis.count}·{analysis.credits}
-        </span>
+        <div className="flex items-center gap-1">
+          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[9px] font-medium text-accent-foreground">
+            {analysis.count} curso{analysis.count !== 1 ? "s" : ""}
+          </span>
+          <span
+            className={cn(
+              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold tabular-nums transition",
+              statusStyles[analysis.status],
+            )}
+          >
+            {analysis.credits} credito{analysis.credits !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+      <div className="rounded-md border border-border/60 bg-background/35 p-1.5">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Horas del ciclo
+          </span>
+          <span className="rounded bg-foreground px-1.5 py-0.5 font-mono text-[9px] font-bold text-background tabular-nums">
+            {totalHours}h total
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          <Metric label="Teoria" value={theoryHours} />
+          <Metric label="Practica" value={practiceHours} />
+          <Metric label="Laboratorio" value={labHours} />
+        </div>
+        <div className="mt-1 flex items-center justify-between rounded bg-muted/50 px-1.5 py-1">
+          <span className="text-[8px] font-medium uppercase tracking-wider text-muted-foreground">
+            Acumulado
+          </span>
+          <span className="font-mono text-[10px] font-semibold tabular-nums text-foreground">
+            {cumulativeCredits} creditos
+          </span>
+        </div>
       </div>
       <div className="-mx-1 flex flex-1 flex-col gap-1.5 overflow-y-auto px-1 py-1 pr-1.5">
         {courses.map((course) => (
@@ -74,6 +108,23 @@ export function CycleColumn({
             highlight={highlightFor(course.code)}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function sum(courses: Course[], key: "ht" | "hp" | "hl" | "th") {
+  return courses.reduce((total, course) => total + course[key], 0);
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded border border-border/50 bg-card/60 px-1.5 py-1">
+      <div className="truncate text-[8px] font-medium text-muted-foreground">
+        {label}
+      </div>
+      <div className="font-mono text-[10px] font-semibold tabular-nums text-foreground">
+        {value}h
       </div>
     </div>
   );

@@ -66,20 +66,25 @@ export function CourseCard({
         />
         <div className="min-w-0 flex-1">
           <div className="font-semibold tracking-tight">{course.name}</div>
-          <div className="mt-0.5 flex items-center gap-1 text-[9px] opacity-70">
+          <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] opacity-75">
             <span className="font-mono tabular-nums">{course.code}</span>
             <span className="opacity-40">·</span>
-            <span className="font-medium">{course.cred}cr</span>
+            <span className="font-medium">
+              {course.cred} credito{course.cred !== 1 ? "s" : ""}
+            </span>
             {course.prereqs.length > 0 && (
               <>
                 <span className="opacity-40">·</span>
-                <span>{course.prereqs.length}p</span>
+                <span>
+                  {course.prereqs.length} prerreq
+                  {course.prereqs.length !== 1 ? "s" : ""}
+                </span>
               </>
             )}
           </div>
         </div>
       </div>
-      {onEditPrereqs && course.category === "ESPECIALIDAD" && (
+      {onEditPrereqs && (
         <button
           type="button"
           onClick={(e) => {
@@ -87,7 +92,7 @@ export function CourseCard({
             onEditPrereqs(course.code);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          aria-label="Editar prerrequisitos"
+          aria-label="Editar curso"
           className="absolute right-0.5 top-0.5 hidden h-4 w-4 items-center justify-center rounded bg-card/90 text-foreground/70 shadow-sm hover:bg-card hover:text-foreground group-hover:flex"
         >
           <Pencil size={9} />

@@ -131,7 +131,7 @@ export function ImportDialog({ onConfirm, onClose }: Props) {
               cada fila un curso con minimo <code className="rounded bg-card px-1">Asignatura</code>{" "}
               y <code className="rounded bg-card px-1">Ci.</code> (ciclo). Opcional:{" "}
               <code className="rounded bg-card px-1">Codigo</code>,{" "}
-              <code className="rounded bg-card px-1">Cred</code>,{" "}
+              <code className="rounded bg-card px-1">Creditos</code>,{" "}
               <code className="rounded bg-card px-1">Prerrequisitos</code>,{" "}
               <code className="rounded bg-card px-1">Area</code>. Compatible con
               templates EPIA / FINAL.
@@ -251,9 +251,9 @@ export function ImportDialog({ onConfirm, onClose }: Props) {
                       c.category === "EEGG" &&
                         "bg-amber-500/15 text-amber-700 dark:text-amber-300",
                       c.category === "ESPECIFICO" &&
-                        "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+                        "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
                       c.category === "ESPECIALIDAD" &&
-                        "bg-violet-500/15 text-violet-700 dark:text-violet-300",
+                        "bg-sky-500/15 text-sky-700 dark:text-sky-300",
                     )}
                   >
                     C{c.defaultCycle}
@@ -262,8 +262,8 @@ export function ImportDialog({ onConfirm, onClose }: Props) {
                   <span className="font-mono text-[9px] text-muted-foreground">
                     {c.code}
                   </span>
-                  <span className="font-mono text-[9px] text-muted-foreground">
-                    {c.cred}cr
+                  <span className="text-[9px] text-muted-foreground">
+                    {c.cred} credito{c.cred !== 1 ? "s" : ""}
                   </span>
                 </div>
               ))}

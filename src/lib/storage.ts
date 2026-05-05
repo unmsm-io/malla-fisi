@@ -1,10 +1,12 @@
-import type { Placement } from "./types";
+import type { CourseOverride, Placement } from "./types";
 
 const KEY_PREFIX = "malla-fisi:v1";
 
 interface SavedState {
   placement: Placement;
-  specialtyOverrides: Record<string, string[]>;
+  specialtyOverrides?: Record<string, string[]>;
+  courseOverrides?: Record<string, CourseOverride>;
+  stateId?: string;
 }
 
 function key(careerSlug: string): string {
