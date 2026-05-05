@@ -810,7 +810,7 @@ export function MallaBuilder({ data }: Props) {
                 onPdf={async () => {
                   const id = toast.loading("Generando PDF...");
                   try {
-                    await exportToPdf(career.label);
+                    await exportToPdf(career.label, allCourses, placement);
                     toast.success("PDF descargado", { id });
                   } catch (err) {
                     toast.error(
