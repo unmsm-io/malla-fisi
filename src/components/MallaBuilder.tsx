@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import {
   analyzeCycles,
@@ -1252,6 +1253,7 @@ function ExportMenu({
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const canUsePortal = typeof document !== "undefined";
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -1297,14 +1299,17 @@ function ExportMenu({
         <Download size={11} /> Exportar
         <ChevronDown size={10} className={cn("transition", open && "rotate-180")} />
       </button>
-      {open && coords && (
+      {open &&
+        coords &&
+        canUsePortal &&
+        createPortal(
         <div
           id="export-menu-portal"
           style={{
             position: "fixed",
             left: coords.left,
             top: coords.top,
-            zIndex: 100,
+            zIndex: 9999,
           }}
           className="w-44 overflow-hidden rounded-md border border-border bg-card shadow-xl"
         >
@@ -1337,8 +1342,9 @@ function ExportMenu({
               <div className="text-[10px] text-muted-foreground">Render visual</div>
             </div>
           </button>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   );
 }
