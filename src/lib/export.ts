@@ -18,8 +18,22 @@ interface CycleSummary {
 interface PdfEdge {
   fromCode: string;
   toCode: string;
-  from: { x: number; y: number };
-  to: { x: number; y: number };
+  from: Point;
+  to: Point;
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface PdfCourseBox {
+  course: Course;
+  cycle: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 export async function exportToExcel(
@@ -253,105 +267,164 @@ export async function exportToPdf(
   allCourses: Course[],
   placement: Placement,
 ) {
-  const [{ domToCanvas }, { default: jsPDF }] = await Promise.all([
-    import("modern-screenshot"),
-    import("jspdf"),
-  ]);
-
-  const node = document.getElementById("malla-export") as HTMLElement | null;
-  if (!node) {
-    throw new Error("malla-export node not found");
-  }
-
-  const grid = node.firstElementChild as HTMLElement | null;
-  const targetNode = grid ?? node;
-  const targetWidth = targetNode.scrollWidth;
-  const targetHeight = targetNode.scrollHeight;
-  const edges = collectPdfPrereqEdges(targetNode, allCourses, placement);
-
-  const isDark = document.documentElement.classList.contains("dark");
-  const backgroundColor = isDark ? "#0f1115" : "#f8fafc";
-
-  const canvas = await domToCanvas(targetNode, {
-    backgroundColor,
-    width: targetWidth,
-    height: targetHeight,
-    scale: 2,
-    style: {
-      transform: "none",
-      overflow: "visible",
-    },
-  });
-
-  const imgData = canvas.toDataURL("image/png");
-
-  const pageWidth = canvas.width;
-  const pageHeight = canvas.height + 80;
+  const { default: jsPDF } = await import("jspdf");
+  const pageWidth = 1800;
+  const pageHeight = 920;
 
   const pdf = new jsPDF({
-    orientation: pageWidth > pageHeight ? "landscape" : "portrait",
+    orientation: "landscape",
     unit: "px",
     format: [pageWidth, pageHeight],
     hotfixes: ["px_scaling"],
   });
 
-  pdf.setFontSize(18);
-  pdf.text(`Malla Curricular - ${careerLabel}`, 24, 36);
-  pdf.setFontSize(10);
-  pdf.setTextColor(120, 120, 120);
-  pdf.text(
-    `Generado ${new Date().toLocaleDateString("es-PE")} - malla-fisi.vercel.app`,
-    24,
-    54,
-  );
-  pdf.addImage(imgData, "PNG", 0, 70, canvas.width, canvas.height);
-  drawPdfPrereqEdges(pdf, edges, canvas.width / targetWidth, 70);
+  addPdfMallaPage(pdf, careerLabel, allCourses, placement, pageWidth, pageHeight);
   addPdfSummaryPage(pdf, careerLabel, buildCycleSummaries(allCourses, placement));
 
   const safe = careerLabel.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase();
   pdf.save(`malla-${safe}-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
-function collectPdfPrereqEdges(
-  targetNode: HTMLElement,
+function addPdfMallaPage(
+  pdf: jsPDF,
+  careerLabel: string,
   allCourses: Course[],
   placement: Placement,
-): PdfEdge[] {
-  const targetRect = targetNode.getBoundingClientRect();
-  const edges: PdfEdge[] = [];
+  pageWidth: number,
+  pageHeight: number,
+) {
+  const marginX = 18;
+  const headerTop = 12;
+  const headerW = 122;
+  const headerH = 28;
+  const top = 104;
+  const bottom = 138;
+  const columnW = (pageWidth - marginX * 2) / 10;
+  const boxesByCode = buildPdfCourseBoxes(
+    allCourses,
+    placement,
+    marginX,
+    columnW,
+    top,
+    pageHeight - bottom,
+  );
+  const edges = collectPdfPrereqEdges(allCourses, placement, boxesByCode);
 
+  pdf.setFillColor(255, 255, 255);
+  pdf.rect(0, 0, pageWidth, pageHeight, "F");
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(11);
+  pdf.setTextColor(35, 35, 35);
+  pdf.text(`MALLA CURRICULAR - ${careerLabel.toUpperCase()}`, marginX, 72);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8);
+  pdf.setTextColor(90, 90, 90);
+  pdf.text(
+    `Generado ${new Date().toLocaleDateString("es-PE")} - malla-fisi.vercel.app`,
+    marginX,
+    87,
+  );
+
+  for (let cycle = 1; cycle <= 10; cycle++) {
+    const centerX = marginX + (cycle - 1) * columnW + columnW / 2;
+    const headerX = centerX - headerW / 2;
+
+    pdf.setDrawColor(75, 75, 75);
+    pdf.setFillColor(255, 255, 255);
+    pdf.setLineWidth(0.8);
+    pdf.rect(headerX, headerTop, headerW, headerH, "FD");
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(8);
+    pdf.setTextColor(28, 28, 28);
+    pdf.text(semesterLabel(cycle), centerX, headerTop + 18, {
+      align: "center",
+    });
+
+    if (cycle > 1) {
+      const x = marginX + (cycle - 1) * columnW;
+      pdf.setDrawColor(90, 90, 90);
+      pdf.setLineDashPattern([3, 3], 0);
+      pdf.line(x, 0, x, pageHeight - 96);
+      pdf.setLineDashPattern([], 0);
+    }
+  }
+
+  drawPdfPrereqEdges(pdf, edges);
+
+  const boxes = [...boxesByCode.values()];
+  for (const box of boxes) {
+    drawPdfCourseBox(pdf, box);
+  }
+
+  drawPdfLegend(pdf, pageWidth, pageHeight);
+}
+
+function semesterLabel(cycle: number): string {
+  const prefixes = ["1ER", "2DO", "3ER", "4TO", "5TO", "6TO", "7MO", "8VO", "9NO", "10MO"];
+  return `${prefixes[cycle - 1]} SEMESTRE`;
+}
+
+function buildPdfCourseBoxes(
+  allCourses: Course[],
+  placement: Placement,
+  marginX: number,
+  columnW: number,
+  top: number,
+  availableHeight: number,
+): Map<string, PdfCourseBox> {
+  const maxRows = Math.max(
+    1,
+    ...Array.from({ length: 10 }, (_, index) =>
+      allCourses.filter((course) => placement[course.code] === index + 1).length,
+    ),
+  );
+  const gap = maxRows > 8 ? 10 : 18;
+  const boxH = Math.max(34, Math.min(54, (availableHeight - gap * (maxRows - 1)) / maxRows));
+  const boxW = Math.min(128, columnW - 44);
+  const boxes = new Map<string, PdfCourseBox>();
+
+  for (let cycle = 1; cycle <= 10; cycle++) {
+    const courses = allCourses
+      .filter((course) => placement[course.code] === cycle)
+      .sort((a, b) => a.name.localeCompare(b.name, "es"));
+    const x = marginX + (cycle - 1) * columnW + (columnW - boxW) / 2;
+    for (let index = 0; index < courses.length; index++) {
+      boxes.set(courses[index].code, {
+        course: courses[index],
+        cycle,
+        x,
+        y: top + index * (boxH + gap),
+        w: boxW,
+        h: boxH,
+      });
+    }
+  }
+
+  return boxes;
+}
+
+function collectPdfPrereqEdges(
+  allCourses: Course[],
+  placement: Placement,
+  boxesByCode: Map<string, PdfCourseBox>,
+): PdfEdge[] {
+  const edges: PdfEdge[] = [];
   for (const course of allCourses) {
     if (placement[course.code] === undefined) continue;
-    const targetEl = targetNode.querySelector(`[data-course-code="${course.code}"]`);
-    if (!targetEl) continue;
-    const courseRect = (targetEl as HTMLElement).getBoundingClientRect();
-
+    const target = boxesByCode.get(course.code);
+    if (!target) continue;
     for (const prereqName of course.prereqs) {
       const prereq = findCourseByName(prereqName, allCourses);
       if (!prereq || placement[prereq.code] === undefined) continue;
-      const sourceEl = targetNode.querySelector(`[data-course-code="${prereq.code}"]`);
-      if (!sourceEl) continue;
-      const prereqRect = (sourceEl as HTMLElement).getBoundingClientRect();
+      const source = boxesByCode.get(prereq.code);
+      if (!source) continue;
 
       edges.push({
         fromCode: prereq.code,
         toCode: course.code,
-        from: {
-          x: prereqRect.right - targetRect.left + targetNode.scrollLeft,
-          y:
-            prereqRect.top +
-            prereqRect.height / 2 -
-            targetRect.top +
-            targetNode.scrollTop,
-        },
-        to: {
-          x: courseRect.left - targetRect.left + targetNode.scrollLeft - 4,
-          y:
-            courseRect.top +
-            courseRect.height / 2 -
-            targetRect.top +
-            targetNode.scrollTop,
-        },
+        from: { x: source.x + source.w, y: source.y + source.h / 2 },
+        to: { x: target.x - 3, y: target.y + target.h / 2 },
       });
     }
   }
@@ -362,32 +435,19 @@ function collectPdfPrereqEdges(
 function drawPdfPrereqEdges(
   pdf: jsPDF,
   edges: PdfEdge[],
-  scale: number,
-  offsetY: number,
 ) {
   if (edges.length === 0) return;
 
-  pdf.setDrawColor(35, 40, 38);
-  pdf.setFillColor(35, 40, 38);
-  pdf.setLineWidth(Math.max(1, 0.7 * scale));
+  pdf.setDrawColor(0, 0, 0);
+  pdf.setFillColor(0, 0, 0);
+  pdf.setLineWidth(0.8);
 
   for (const edge of edges) {
-    const from = {
-      x: edge.from.x * scale,
-      y: edge.from.y * scale + offsetY,
-    };
-    const to = {
-      x: edge.to.x * scale,
-      y: edge.to.y * scale + offsetY,
-    };
-    const gap = Math.max(28 * scale, Math.abs(to.x - from.x) * 0.5);
-    const midX = to.x > from.x ? from.x + gap : from.x + 42 * scale;
-    const points = [
-      from,
-      { x: midX, y: from.y },
-      { x: midX, y: to.y },
-      to,
-    ];
+    const from = edge.from;
+    const to = edge.to;
+    const dx = to.x - from.x;
+    const midX = dx > 0 ? from.x + Math.max(22, dx * 0.5) : from.x + 18;
+    const points = [from, { x: midX, y: from.y }, { x: midX, y: to.y }, to];
 
     for (let i = 0; i < points.length - 1; i++) {
       pdf.line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
@@ -397,7 +457,7 @@ function drawPdfPrereqEdges(
       pdf,
       points[points.length - 2],
       to,
-      Math.max(7, 4.5 * scale),
+      6,
     );
   }
 }
@@ -420,6 +480,59 @@ function drawPdfArrowHead(
   };
 
   pdf.triangle(tip.x, tip.y, left.x, left.y, right.x, right.y, "F");
+}
+
+function drawPdfCourseBox(pdf: jsPDF, box: PdfCourseBox) {
+  const fill = pdfCategoryFill(box.course.category);
+  pdf.setFillColor(fill.r, fill.g, fill.b);
+  pdf.setDrawColor(125, 125, 125);
+  pdf.setLineWidth(0.7);
+  pdf.rect(box.x, box.y, box.w, box.h, "FD");
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(box.h < 42 ? 6.5 : 7);
+  pdf.setTextColor(35, 35, 35);
+  const label = `${box.cycle} ${box.course.name.toUpperCase()}`;
+  const lines = pdf.splitTextToSize(label, box.w - 10).slice(0, 3);
+  const lineHeight = box.h < 42 ? 8 : 9;
+  const textY = box.y + box.h / 2 - ((lines.length - 1) * lineHeight) / 2 + 2;
+  for (let index = 0; index < lines.length; index++) {
+    pdf.text(lines[index], box.x + box.w / 2, textY + index * lineHeight, {
+      align: "center",
+    });
+  }
+}
+
+function drawPdfLegend(pdf: jsPDF, pageWidth: number, pageHeight: number) {
+  const items: { label: string; category: Course["category"] }[] = [
+    { label: "EEGG", category: "EEGG" },
+    { label: "Especificos", category: "ESPECIFICO" },
+    { label: "Especialidad", category: "ESPECIALIDAD" },
+  ];
+  const startX = pageWidth - 460;
+  const startY = pageHeight - 72;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8);
+  pdf.setTextColor(45, 45, 45);
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
+    const fill = pdfCategoryFill(item.category);
+    const x = startX + index * 145;
+    pdf.setFillColor(fill.r, fill.g, fill.b);
+    pdf.setDrawColor(125, 125, 125);
+    pdf.rect(x, startY, 36, 18, "FD");
+    pdf.text(item.label, x + 44, startY + 12);
+  }
+}
+
+function pdfCategoryFill(category: Course["category"]) {
+  const fills: Record<Course["category"], { r: number; g: number; b: number }> = {
+    EEGG: { r: 246, g: 214, b: 190 },
+    ESPECIFICO: { r: 214, g: 234, b: 210 },
+    ESPECIALIDAD: { r: 210, g: 225, b: 243 },
+  };
+  return fills[category];
 }
 
 function addPdfSummaryPage(
