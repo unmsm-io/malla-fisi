@@ -2,7 +2,7 @@
 
 import type { jsPDF } from "jspdf";
 import type { Course, MallaState, Placement } from "./types";
-import { ROMAN } from "./utils";
+import { findCourseByName, ROMAN } from "./utils";
 
 interface CycleSummary {
   cycle: number;
@@ -13,6 +13,13 @@ interface CycleSummary {
   th: number;
   credits: number;
   accumulatedCredits: number;
+}
+
+interface PdfEdge {
+  fromCode: string;
+  toCode: string;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
 }
 
 export async function exportToExcel(
@@ -260,6 +267,7 @@ export async function exportToPdf(
   const targetNode = grid ?? node;
   const targetWidth = targetNode.scrollWidth;
   const targetHeight = targetNode.scrollHeight;
+  const edges = collectPdfPrereqEdges(targetNode, allCourses, placement);
 
   const isDark = document.documentElement.classList.contains("dark");
   const backgroundColor = isDark ? "#0f1115" : "#f8fafc";
@@ -297,10 +305,121 @@ export async function exportToPdf(
     54,
   );
   pdf.addImage(imgData, "PNG", 0, 70, canvas.width, canvas.height);
+  drawPdfPrereqEdges(pdf, edges, canvas.width / targetWidth, 70);
   addPdfSummaryPage(pdf, careerLabel, buildCycleSummaries(allCourses, placement));
 
   const safe = careerLabel.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase();
   pdf.save(`malla-${safe}-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+function collectPdfPrereqEdges(
+  targetNode: HTMLElement,
+  allCourses: Course[],
+  placement: Placement,
+): PdfEdge[] {
+  const targetRect = targetNode.getBoundingClientRect();
+  const edges: PdfEdge[] = [];
+
+  for (const course of allCourses) {
+    if (placement[course.code] === undefined) continue;
+    const targetEl = targetNode.querySelector(`[data-course-code="${course.code}"]`);
+    if (!targetEl) continue;
+    const courseRect = (targetEl as HTMLElement).getBoundingClientRect();
+
+    for (const prereqName of course.prereqs) {
+      const prereq = findCourseByName(prereqName, allCourses);
+      if (!prereq || placement[prereq.code] === undefined) continue;
+      const sourceEl = targetNode.querySelector(`[data-course-code="${prereq.code}"]`);
+      if (!sourceEl) continue;
+      const prereqRect = (sourceEl as HTMLElement).getBoundingClientRect();
+
+      edges.push({
+        fromCode: prereq.code,
+        toCode: course.code,
+        from: {
+          x: prereqRect.right - targetRect.left + targetNode.scrollLeft,
+          y:
+            prereqRect.top +
+            prereqRect.height / 2 -
+            targetRect.top +
+            targetNode.scrollTop,
+        },
+        to: {
+          x: courseRect.left - targetRect.left + targetNode.scrollLeft - 4,
+          y:
+            courseRect.top +
+            courseRect.height / 2 -
+            targetRect.top +
+            targetNode.scrollTop,
+        },
+      });
+    }
+  }
+
+  return edges;
+}
+
+function drawPdfPrereqEdges(
+  pdf: jsPDF,
+  edges: PdfEdge[],
+  scale: number,
+  offsetY: number,
+) {
+  if (edges.length === 0) return;
+
+  pdf.setDrawColor(35, 40, 38);
+  pdf.setFillColor(35, 40, 38);
+  pdf.setLineWidth(Math.max(1, 0.7 * scale));
+
+  for (const edge of edges) {
+    const from = {
+      x: edge.from.x * scale,
+      y: edge.from.y * scale + offsetY,
+    };
+    const to = {
+      x: edge.to.x * scale,
+      y: edge.to.y * scale + offsetY,
+    };
+    const gap = Math.max(28 * scale, Math.abs(to.x - from.x) * 0.5);
+    const midX = to.x > from.x ? from.x + gap : from.x + 42 * scale;
+    const points = [
+      from,
+      { x: midX, y: from.y },
+      { x: midX, y: to.y },
+      to,
+    ];
+
+    for (let i = 0; i < points.length - 1; i++) {
+      pdf.line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+    }
+
+    drawPdfArrowHead(
+      pdf,
+      points[points.length - 2],
+      to,
+      Math.max(7, 4.5 * scale),
+    );
+  }
+}
+
+function drawPdfArrowHead(
+  pdf: jsPDF,
+  previous: { x: number; y: number },
+  tip: { x: number; y: number },
+  size: number,
+) {
+  const angle = Math.atan2(tip.y - previous.y, tip.x - previous.x);
+  const wing = Math.PI / 7;
+  const left = {
+    x: tip.x - size * Math.cos(angle - wing),
+    y: tip.y - size * Math.sin(angle - wing),
+  };
+  const right = {
+    x: tip.x - size * Math.cos(angle + wing),
+    y: tip.y - size * Math.sin(angle + wing),
+  };
+
+  pdf.triangle(tip.x, tip.y, left.x, left.y, right.x, right.y, "F");
 }
 
 function addPdfSummaryPage(
