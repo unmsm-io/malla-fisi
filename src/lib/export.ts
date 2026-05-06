@@ -20,6 +20,7 @@ interface PdfEdge {
   toCode: string;
   from: Point;
   to: Point;
+  laneX: number;
 }
 
 interface Point {
@@ -34,6 +35,13 @@ interface PdfCourseBox {
   y: number;
   w: number;
   h: number;
+}
+
+interface RawPdfEdge {
+  fromCode: string;
+  toCode: string;
+  source: PdfCourseBox;
+  target: PdfCourseBox;
 }
 
 export async function exportToExcel(
@@ -409,7 +417,7 @@ function collectPdfPrereqEdges(
   placement: Placement,
   boxesByCode: Map<string, PdfCourseBox>,
 ): PdfEdge[] {
-  const edges: PdfEdge[] = [];
+  const rawEdges: RawPdfEdge[] = [];
   for (const course of allCourses) {
     if (placement[course.code] === undefined) continue;
     const target = boxesByCode.get(course.code);
@@ -420,16 +428,73 @@ function collectPdfPrereqEdges(
       const source = boxesByCode.get(prereq.code);
       if (!source) continue;
 
-      edges.push({
+      rawEdges.push({
         fromCode: prereq.code,
         toCode: course.code,
-        from: { x: source.x + source.w, y: source.y + source.h / 2 },
-        to: { x: target.x - 3, y: target.y + target.h / 2 },
+        source,
+        target,
       });
     }
   }
 
-  return edges;
+  const sourceGroups = groupRawEdges(rawEdges, (edge) => edge.fromCode);
+  const targetGroups = groupRawEdges(rawEdges, (edge) => edge.toCode);
+  const cycleGroups = groupRawEdges(
+    rawEdges,
+    (edge) => `${edge.source.cycle}->${edge.target.cycle}`,
+  );
+
+  return rawEdges.map((edge) => {
+    const sourceGroup = sourceGroups.get(edge.fromCode) ?? [];
+    const targetGroup = targetGroups.get(edge.toCode) ?? [];
+    const cycleKey = `${edge.source.cycle}->${edge.target.cycle}`;
+    const cycleGroup = cycleGroups.get(cycleKey) ?? [];
+    const sourceIndex = sourceGroup.indexOf(edge);
+    const targetIndex = targetGroup.indexOf(edge);
+    const laneIndex = cycleGroup.indexOf(edge);
+    const fromY = edge.source.y + edge.source.h / 2 + distributedOffset(sourceIndex, sourceGroup.length, edge.source.h * 0.52);
+    const toY = edge.target.y + edge.target.h / 2 + distributedOffset(targetIndex, targetGroup.length, edge.target.h * 0.52);
+    const minLaneX = edge.source.x + edge.source.w + 12;
+    const maxLaneX = edge.target.x - 16;
+    const laneSpread = Math.max(0, maxLaneX - minLaneX);
+    const laneX =
+      laneSpread > 10
+        ? minLaneX + ((laneIndex + 1) / (cycleGroup.length + 1)) * laneSpread
+        : edge.source.x + edge.source.w + 18 + laneIndex * 4;
+
+    return {
+      fromCode: edge.fromCode,
+      toCode: edge.toCode,
+      from: { x: edge.source.x + edge.source.w, y: fromY },
+      to: { x: edge.target.x - 3, y: toY },
+      laneX,
+    };
+  });
+}
+
+function groupRawEdges(
+  edges: RawPdfEdge[],
+  keyFor: (edge: RawPdfEdge) => string,
+): Map<string, RawPdfEdge[]> {
+  const groups = new Map<string, RawPdfEdge[]>();
+  for (const edge of edges) {
+    const key = keyFor(edge);
+    groups.set(key, [...(groups.get(key) ?? []), edge]);
+  }
+  for (const group of groups.values()) {
+    group.sort((a, b) => {
+      return (
+        a.source.y - b.source.y ||
+        a.target.y - b.target.y
+      );
+    });
+  }
+  return groups;
+}
+
+function distributedOffset(index: number, total: number, spread: number): number {
+  if (total <= 1 || index < 0) return 0;
+  return -spread / 2 + (spread * index) / (total - 1);
 }
 
 function drawPdfPrereqEdges(
@@ -438,16 +503,15 @@ function drawPdfPrereqEdges(
 ) {
   if (edges.length === 0) return;
 
-  pdf.setDrawColor(0, 0, 0);
-  pdf.setFillColor(0, 0, 0);
-  pdf.setLineWidth(0.8);
+  pdf.setDrawColor(45, 45, 45);
+  pdf.setFillColor(45, 45, 45);
+  pdf.setLineWidth(0.55);
 
   for (const edge of edges) {
     const from = edge.from;
     const to = edge.to;
-    const dx = to.x - from.x;
-    const midX = dx > 0 ? from.x + Math.max(22, dx * 0.5) : from.x + 18;
-    const points = [from, { x: midX, y: from.y }, { x: midX, y: to.y }, to];
+    const laneX = edge.laneX;
+    const points = [from, { x: laneX, y: from.y }, { x: laneX, y: to.y }, to];
 
     for (let i = 0; i < points.length - 1; i++) {
       pdf.line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
