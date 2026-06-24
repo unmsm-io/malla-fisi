@@ -3,8 +3,8 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil } from "lucide-react";
-import type { Course } from "@/lib/types";
-import { CATEGORY_STYLES, cn } from "@/lib/utils";
+import type { Course } from "@/lib/domain/types";
+import { CATEGORY_STYLES, cn } from "@/lib/domain/utils";
 
 export type CardHighlight = "none" | "self" | "ancestor" | "descendant";
 

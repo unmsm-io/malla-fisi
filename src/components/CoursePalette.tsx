@@ -1,8 +1,8 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import type { Course } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import type { Course } from "@/lib/domain/types";
+import { cn } from "@/lib/domain/utils";
 import { CardHighlight, CourseCard } from "./CourseCard";
 
 interface Props {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Course, Placement } from "@/lib/types";
-import { findCourseByName } from "@/lib/utils";
+import type { Course, Placement } from "@/lib/domain/types";
+import { findCourseByName } from "@/lib/domain/utils";
 
 interface Edge {
   fromCode: string;

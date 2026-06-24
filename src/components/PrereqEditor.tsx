@@ -2,8 +2,8 @@
 
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Course } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import type { Course } from "@/lib/domain/types";
+import { cn } from "@/lib/domain/utils";
 
 interface Props {
   course: Course | null;

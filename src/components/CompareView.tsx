@@ -9,9 +9,9 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { autoOrganize, defaultPlacementFromExcel } from "@/lib/algorithms";
-import type { Course, CoursesData, Placement } from "@/lib/types";
-import { CATEGORY_STYLES, ROMAN, cn, normalizeName } from "@/lib/utils";
+import { autoOrganize, defaultPlacementFromExcel } from "@/lib/domain/algorithms";
+import type { Course, CoursesData, Placement } from "@/lib/domain/types";
+import { CATEGORY_STYLES, ROMAN, cn, normalizeName } from "@/lib/domain/utils";
 
 interface Props {
   data: CoursesData;

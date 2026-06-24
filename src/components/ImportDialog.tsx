@@ -2,9 +2,9 @@
 
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { ImportResult } from "@/lib/import";
-import { importExcel } from "@/lib/import";
-import { cn } from "@/lib/utils";
+import type { ImportResult } from "@/lib/data/import";
+import { importExcel } from "@/lib/data/import";
+import { cn } from "@/lib/domain/utils";
 
 interface Props {
   onConfirm: (result: ImportResult) => void;

@@ -38,14 +38,14 @@ import {
   defaultPlacementFromExcel,
   detectIssues,
   getChain,
-} from "@/lib/algorithms";
-import { exportToExcel, exportToPdf } from "@/lib/export";
-import { applyProposal, type Proposal } from "@/lib/proposals";
-import { solveIssues } from "@/lib/solver";
-import type { Warning } from "@/lib/algorithms";
-import { loadState, saveState } from "@/lib/storage";
-import type { Course, CourseOverride, CoursesData, MallaState, Placement } from "@/lib/types";
-import { ROMAN, cn, validatePlacement } from "@/lib/utils";
+} from "@/lib/domain/algorithms";
+import { exportToExcel, exportToPdf } from "@/lib/data/export";
+import { applyProposal, type Proposal } from "@/lib/domain/proposals";
+import { solveIssues } from "@/lib/domain/solver";
+import type { Warning } from "@/lib/domain/algorithms";
+import { loadState, saveState } from "@/lib/data/storage";
+import type { Course, CourseOverride, CoursesData, MallaState, Placement } from "@/lib/domain/types";
+import { ROMAN, cn, validatePlacement } from "@/lib/domain/utils";
 import { CompareView } from "./CompareView";
 import { CardHighlight, CourseCard } from "./CourseCard";
 import { CoursePalette } from "./CoursePalette";
@@ -55,8 +55,8 @@ import { IssuesPanel } from "./IssuesPanel";
 import { PrereqEdges } from "./PrereqEdges";
 import { PrereqEditor } from "./PrereqEditor";
 import { ThemeToggle } from "./ThemeToggle";
-import type { Career } from "@/lib/types";
-import type { ImportResult } from "@/lib/import";
+import type { Career } from "@/lib/domain/types";
+import type { ImportResult } from "@/lib/data/import";
 
 interface Props {
   data: CoursesData;

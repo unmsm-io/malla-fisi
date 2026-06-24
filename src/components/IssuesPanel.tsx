@@ -10,10 +10,10 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import type { Warning } from "@/lib/algorithms";
-import { type Proposal, proposalsForWarning } from "@/lib/proposals";
-import type { Course, Placement } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import type { Warning } from "@/lib/domain/algorithms";
+import { type Proposal, proposalsForWarning } from "@/lib/domain/proposals";
+import type { Course, Placement } from "@/lib/domain/types";
+import { cn } from "@/lib/domain/utils";
 
 interface Props {
   warnings: Warning[];
