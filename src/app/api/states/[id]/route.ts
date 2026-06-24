@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { ensureMallaStatesTable, sql } from "@/lib/db";
+import { ensureMallaStatesTable, sql } from "@/lib/data/db";
 
 interface Params {
   params: Promise<{ id: string }>;

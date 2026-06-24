@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { ensureMallaStatesTable, sql } from "@/lib/db";
-import type { MallaState } from "@/lib/types";
+import { ensureMallaStatesTable, sql } from "@/lib/data/db";
+import type { MallaState } from "@/lib/domain/types";
 
 export async function POST(request: Request) {
   try {

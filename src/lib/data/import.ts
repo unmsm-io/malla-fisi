@@ -1,5 +1,5 @@
-import type { Career, Course, MallaState } from "./types";
-import { normalizeName } from "./utils";
+import type { Career, Course, MallaState } from "../domain/types";
+import { normalizeName } from "../domain/utils";
 
 export interface ImportResult {
   career: Career;

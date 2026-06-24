@@ -1,7 +1,7 @@
 import { Show, SignIn } from "@clerk/nextjs";
 import { MallaBuilder } from "@/components/MallaBuilder";
 import data from "@/data/courses.json";
-import type { CoursesData } from "@/lib/types";
+import type { CoursesData } from "@/lib/domain/types";
 
 export default function Home() {
   return (

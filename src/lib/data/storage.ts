@@ -1,4 +1,4 @@
-import type { CourseOverride, Placement } from "./types";
+import type { CourseOverride, Placement } from "../domain/types";
 
 const KEY_PREFIX = "malla-fisi:v1";
 

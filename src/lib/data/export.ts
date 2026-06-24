@@ -1,8 +1,8 @@
 "use client";
 
 import type { jsPDF } from "jspdf";
-import type { Course, MallaState, Placement } from "./types";
-import { findCourseByName, ROMAN } from "./utils";
+import type { Course, MallaState, Placement } from "../domain/types";
+import { findCourseByName, ROMAN } from "../domain/utils";
 
 interface CycleSummary {
   cycle: number;
